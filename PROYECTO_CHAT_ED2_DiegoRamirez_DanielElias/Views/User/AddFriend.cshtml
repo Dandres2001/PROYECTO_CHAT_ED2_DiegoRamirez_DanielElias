@@ -1,0 +1,50 @@
+﻿@model IEnumerable<PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Models.Users>
+
+@{
+    ViewData["Title"] = "AddFriend";
+}
+
+<h1>Buscar Usuario</h1>
+
+<form method="get" asp-action="AddFriend">
+    <p>
+        <input type="search" placeholder="Type username..." value="@ViewData["GetUser"]" name="searched" style="width:500px;" />
+        <input type="submit" value="Search" class="btn btn-outline-primary" />
+        <a asp-action="AddFriend">Show All</a>
+    </p>
+
+</form>
+<table class="table-secondary">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Username)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Password)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.eMail)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Username)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Password)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.eMail)
+            </td>
+            <td>
+                @Html.ActionLink("Send Request", "SendRequest", new { user = item.Username })                
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

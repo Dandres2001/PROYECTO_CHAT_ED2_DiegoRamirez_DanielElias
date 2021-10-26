@@ -1,0 +1,36 @@
+﻿@model IEnumerable<PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Models.Users>
+
+@{
+    ViewData["Title"] = "ViewRequests";
+}
+
+<h1></h1>Ver Solicitudes
+
+
+<table class="table">
+    <thead>
+        <tr>
+
+            <th>
+                @Html.DisplayNameFor(model => model.Username)
+            </th>
+
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.Username)
+            </td>
+ 
+            <td>
+                @Html.ActionLink("Aceptar", "AcceptRequest", new { user = item.Username }) |
+                @Html.ActionLink("Rechazar", "DeclineRequest", new { user = item.Username })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
