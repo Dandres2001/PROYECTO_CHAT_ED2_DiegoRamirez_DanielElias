@@ -20,6 +20,7 @@ namespace API_Proyecto.Repositories
         }
         public async Task AddUser(Users user)
         {
+ 
             await Collection.InsertOneAsync(user); 
         }
 

@@ -9,7 +9,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Session;
-
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias
 {
     public class Startup
@@ -27,7 +29,16 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias
             services.AddControllersWithViews();
             services.AddMvc();
             services.AddDistributedMemoryCache();
-            services.AddSession(); 
+            services.AddSession();
+            services.AddMvc().AddJsonOptions(o =>
+            {
+                o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+                o.JsonSerializerOptions.MaxDepth = 0;
+            });
+
+
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

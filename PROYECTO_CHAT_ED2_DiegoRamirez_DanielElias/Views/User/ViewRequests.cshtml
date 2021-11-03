@@ -1,4 +1,4 @@
-﻿@model IEnumerable<PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Models.Users>
+﻿@model List<string>
 
 @{
     ViewData["Title"] = "ViewRequests";
@@ -12,25 +12,37 @@
         <tr>
 
             <th>
-                @Html.DisplayNameFor(model => model.Username)
+                @Html.DisplayNameFor(model => model)
             </th>
 
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
+        @foreach (var item in Model)
+        {
+            <tr>
 
-            <td>
-                @Html.DisplayFor(modelItem => item.Username)
-            </td>
- 
-            <td>
-                @Html.ActionLink("Aceptar", "AcceptRequest", new { user = item.Username }) |
-                @Html.ActionLink("Rechazar", "DeclineRequest", new { user = item.Username })
-            </td>
-        </tr>
-}
+                <td>
+                    @Html.DisplayFor(modelItem => item)
+                </td>
+
+                <td>
+                    @Html.ActionLink("Aceptar", "AcceptRequest", new { user = item }) |
+                    @Html.ActionLink("Rechazar", "DeclineRequest", new { user = item })
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+@if (null != TempData["alertMessage"])
+{
+    <script type="text/javascript">
+       alert("@TempData["alertMessage"]");
+    </script>
+}

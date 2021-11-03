@@ -7,6 +7,12 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Models;
 using PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Repositories;
+using PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Helper;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 {
@@ -14,10 +20,20 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
     {
 
         private IUserCollection db = new UserCollection();
+        ApiProyecto _api = new ApiProyecto();
         // GET: UserController
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var users = db.GetAllUsers();
+            List<Users> users = new List<Users>();
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user");
+            if (res.IsSuccessStatusCode)
+            {
+                var results = res.Content.ReadAsStringAsync().Result;
+                users = System.Text.Json.JsonSerializer.Deserialize<List<Users>>(results);
+
+            }
+        
             return View(users);
         }
 
@@ -36,31 +52,46 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
         // POST: UserController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Create(IFormCollection collection)
         {
             try
             {
-                List<Users> usersList = db.GetAllUsers().ToList();
+
                 var user = new Users();
                 {
-                    user.guid = Guid.NewGuid().ToString();
+
                     user.Username = collection["Username"];
                     user.Password = collection["Password"];
                     user.eMail = collection["eMail"];
-                    user.friendsList = new List<Users>();
-                    user.requestsList = new List<Users>();
+                    user.friendsList = new List<string>();
+                    user.requestsList = new List<string>();
                 };
 
-                foreach(var u in usersList)
+                HttpClient client = _api.Initial();
+               
+          
+
+
+
+                string json = System.Text.Json.JsonSerializer.Serialize(user);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+          
+                HttpResponseMessage response = await client.PostAsync("api/user", content);
+                if (response.IsSuccessStatusCode)
                 {
-                    if(u.Username == user.Username)
-                    {
-                        //NO PUEDE CREARLO
-                        ShowDialog("El usuario que desea ya se encuentra ocupado");
-                        return View();
-                    }
+
+                    ShowDialog("Registro exitoso");
                 }
-                db.createUser(user);
+                else
+                {
+                    ShowDialog("El usuario que desea ya se encuentra en uso, pruebe con otro");
+                    return View();
+                }
+
+
+
+
 
                 return RedirectToAction(nameof(Index));
             }
@@ -78,7 +109,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
         // POST: UserController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Login(IFormCollection collection)
+        public async Task<ActionResult> Login(IFormCollection collection)
         {
             try
             {
@@ -91,29 +122,31 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                     user.eMail = collection["eMail"];
 
                 };
-
-                foreach (var u in usersList)
-                {
-                    if (u.Username == user.Username && u.Password == user.Password)
+                HttpClient client = _api.Initial();
+                string json = System.Text.Json.JsonSerializer.Serialize(user);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await client.PostAsync("api/user/access/login", content);
+              
+                    if (response.IsSuccessStatusCode)
                     {
                        
                         //ShowDialog("Sesión iniciada como: " + u.Username);
-                        HttpContext.Session.SetString("usuarioLogeado", u.Username);
+                        HttpContext.Session.SetString("usuarioLogeado", user.Username);
                         ViewBag.sessionv= HttpContext.Session.GetString("usuarioLogeado");
                         //RETORNAR ACCION DE SESION INICIADA
                         return RedirectToAction(nameof(Chat));
                     }
-                }
+                
                 //SI NO INICIA SESIÓN
                 ShowDialog("Usuario y/o contraseña incorrectos");
 
                 return View();
-            }
+             }
             catch
             {
                 return View();
-            }
-        }
+    }
+}
         public ActionResult Chat()
         {
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
@@ -122,11 +155,21 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
         //ACCIONES PARA AGREGAR CONTACTOS
         [HttpGet]
-        public ActionResult AddFriend(string searched)
+        public async Task<IActionResult> AddFriend(string searched)
         {
-            List<Users> usersList = db.GetAllUsers().ToList();
+
+            List<Users> users = new List<Users>();
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user");
+            if (res.IsSuccessStatusCode)
+            {
+                var results = res.Content.ReadAsStringAsync().Result;
+                users = System.Text.Json.JsonSerializer.Deserialize<List<Users>>(results);
+
+            }
+            
             ViewData["GetUser"] = searched;
-            var userRequest = from x in usersList select x;
+            var userRequest = from x in users select x;
             if (!String.IsNullOrEmpty(searched))
             {
 
@@ -137,59 +180,134 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             return View(userRequest);
         }
 
-        public ActionResult SendRequest(string user)
+        public async Task<IActionResult> SendRequest(string user)
         {
-            List<Users> usersList = db.GetAllUsers().ToList();
+            var receiver = new Users();
+            var sender = new Users();
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/"+user);
+            if (res.IsSuccessStatusCode)
+            {
+                var results = res.Content.ReadAsStringAsync().Result;
+                receiver = System.Text.Json.JsonSerializer.Deserialize<Users>(results);
+
+            }
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
-           
-            var sender = usersList.Find(x => x.Username == ViewBag.sessionv);
-            usersList.Find(x => x.Username == user).requestsList.Add(sender);
+            res = await client.GetAsync("api/user/" + ViewBag.sessionv);
+            if (res.IsSuccessStatusCode)
+            {
+                var results = res.Content.ReadAsStringAsync().Result;
+                sender = System.Text.Json.JsonSerializer.Deserialize<Users>(results);
+
+            }
+            foreach (string u in receiver.requestsList)
+            {
+                if (u == sender.Username)
+                {
+                    ShowDialog("Ya has enviado una solicitud a esta persona");
+                    return RedirectToAction(nameof(Chat));
+
+
+                }
+            }
+     
+            receiver.requestsList.Add(sender.Username);
+            string json = System.Text.Json.JsonSerializer.Serialize(receiver);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await client.PutAsync("api/user/"+receiver.Username, content);
+            if (response.IsSuccessStatusCode)
+            {
+                ShowDialog("Solicitud enviada");
+
+            }
+
 
             return RedirectToAction(nameof(Chat));
         }
         [HttpGet]
-        public ActionResult ViewRequests()
+        public async Task<IActionResult> ViewRequests()
         {
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
-            List<Users> usersList = db.GetAllUsers().ToList();
 
             var user = new Users();
-            foreach (var u in usersList)
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/" + ViewBag.sessionv);
+            if (res.IsSuccessStatusCode)
             {
-                if (u.Username == ViewBag.sessionv)
-                {
+                var results = res.Content.ReadAsStringAsync().Result;
+                user = System.Text.Json.JsonSerializer.Deserialize<Users>(results);
 
-                    user.guid = u.guid;
-                    user.Username = u.Username;
-                    user.Password = u.Password;
-                    user.eMail = u.eMail;
-                    user.friendsList = u.friendsList;
-                    user.requestsList = u.requestsList;
-
-                    break;
-
-                }
             }
 
             return View(user.requestsList);
         }
-        public ActionResult AcceptRequest(string user)
+        public async Task<IActionResult> AcceptRequest(string user)
         {
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
-            List<Users> usersList = db.GetAllUsers().ToList();
-            var u = usersList.Find(x => x.Username == user);
-            usersList.Find(x => x.Username == ViewBag.sessionv).requestsList.Remove(u);
-            usersList.Find(x => x.Username == ViewBag.sessionv).friendsList.Add(u);
-            usersList.Find(x => x.Username == user).friendsList.Add(ViewBag.sessionv);
+            var requester = new Users();
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/" + user);
+            if (res.IsSuccessStatusCode)
+            {
+                var results = res.Content.ReadAsStringAsync().Result;
+                requester = System.Text.Json.JsonSerializer.Deserialize<Users>(results);
 
+            }
+            var currentUser = new Users();
+            res = await client.GetAsync("api/user/" + ViewBag.sessionv);
+            if (res.IsSuccessStatusCode)
+            {
+                var results = res.Content.ReadAsStringAsync().Result;
+                currentUser = System.Text.Json.JsonSerializer.Deserialize<Users>(results);
+            }
+            //ELIMINAR AL REQUESTER DE LA LISTA DE REQUESTS
+            currentUser.requestsList.Remove(currentUser.requestsList.Find(x => x == requester.Username));
+            //AGREGAR AL REQUESTER A LISTA DE AMIGOS DE CURRENT
+            currentUser.friendsList.Add(requester.Username);
+            //AGREGAR AL CURRRENT A LA LISTA DE AMIGOS DEL CURRENT
+            requester.friendsList.Add(currentUser.Username);
+            //LLAMAR A UPDATE DESDE LA API PARA CURRENT
+
+   
+            string json = System.Text.Json.JsonSerializer.Serialize(currentUser);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await client.PutAsync("api/user/" + currentUser.Username, content);
+            //LLAMAR A UPDATE DESDE LA API PARA REQUESTER
+            json = System.Text.Json.JsonSerializer.Serialize(requester);
+            content = new StringContent(json, Encoding.UTF8, "application/json");
+            response = await client.PutAsync("api/user/" + requester.Username, content);
+            if (response.IsSuccessStatusCode)
+            {
+               // ShowDialog("Contacto Agregado");
+            }
             return RedirectToAction(nameof(ViewRequests));
         }
-        public ActionResult DeclineRequest(string user)
+        public async Task<IActionResult> DeclineRequest(string user)
         {
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
-            List<Users> usersList = db.GetAllUsers().ToList();
-            var u = usersList.Find(x => x.Username == user);
-            usersList.Find(x => x.Username == ViewBag.sessionv).requestsList.Remove(u);
+            var requester = new Users();
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/" + user);
+            if (res.IsSuccessStatusCode)
+            {
+                var results = res.Content.ReadAsStringAsync().Result;
+                requester = System.Text.Json.JsonSerializer.Deserialize<Users>(results);
+
+            }
+            var currentUser = new Users();
+            res = await client.GetAsync("api/user/" + ViewBag.sessionv);
+            if (res.IsSuccessStatusCode)
+            {
+                var results = res.Content.ReadAsStringAsync().Result;
+                currentUser = System.Text.Json.JsonSerializer.Deserialize<Users>(results);
+            }
+            //ELIMINAR AL REQUESTER DE LA LISTA DE REQUESTS
+            currentUser.requestsList.Remove(currentUser.requestsList.Find(x => x == requester.Username));
+            //LLAMAR A UPDATE DESDE LA API PARA CURRENT
+            string json = System.Text.Json.JsonSerializer.Serialize(currentUser);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await client.PutAsync("api/user/" + currentUser.Username, content);
+
             return RedirectToAction(nameof(ViewRequests));
         }
         // GET: UserController/Edit/5

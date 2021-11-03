@@ -6,6 +6,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using System.Text;
+using System.Text.Json;
+
+
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace API_Proyecto.Controllers
@@ -20,7 +24,7 @@ namespace API_Proyecto.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            return Ok(await db.GetAllUsers());
+            return Ok(JsonSerializer.Serialize(await db.GetAllUsers()));
         }
 
         [HttpGet("{username}")]
@@ -28,34 +32,78 @@ namespace API_Proyecto.Controllers
         {
             List<Users> users = db.GetAllUsers().Result.ToList();
             var u = users.Find(x => x.Username == username);
-            return Ok(await db.GetUserById(u.id.ToString()));
+            return Ok(JsonSerializer.Serialize(await db.GetUserById(u.id.ToString())));
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddUser (Users user)
+        public async Task<IActionResult> AddUser (JsonElement jsonUser)
         {
-            if (user == null)
+
+            //Validacion Usuarios
+            var userList = new Users();
+            string json = jsonUser.ToString();
+            userList = JsonSerializer.Deserialize<Users>(json);
+            List<Users> users = db.GetAllUsers().Result.ToList();
+            foreach(Users u in users)
             {
-                return BadRequest();
+                if(u.Username == userList.Username)
+                {
+                    return BadRequest();
+                }
             }
-            await db.AddUser(user);
+
+            await db.AddUser(userList);
             return Created("Created", true) ;
+        }
+
+
+        
+        [HttpPost("access/login")]
+        public IActionResult Login([FromBody] JsonElement jsonUser)
+        {
+
+            //Validacion Usuarios
+            var user = new Users();
+            string json = jsonUser.ToString();
+            user = JsonSerializer.Deserialize<Users>(json);
+            List<Users> users = db.GetAllUsers().Result.ToList();
+            foreach (Users u in users)
+            {
+                if (u.Username == user.Username && u.Password == user.Password)
+                {
+                    return Ok();
+                }
+            }
+
+
+            return BadRequest();
         }
 
         //PUT api/<UserController>/5
         [HttpPut("{username}")]
-        public async Task<IActionResult> Put(string username, [FromBody] Users user)
+        public async Task<IActionResult> Put(string username,JsonElement jsonUser)
         {
+            var user = new Users();
+            string json = jsonUser.ToString();
+            user = JsonSerializer.Deserialize<Users>(json);
             if (user == null)
             {
                 return BadRequest();
             }
-            List<Users> users = db.GetAllUsers().Result.ToList();
-            var u = users.Find(x => x.Username == username);
-            string _id = u.id.ToString();
-            user.id = new MongoDB.Bson.ObjectId(_id);
-            await db.UpdateUser(user);
-            return Created("Created", true);
+            try
+            {
+                List<Users> users = db.GetAllUsers().Result.ToList();
+                var u = users.Find(x => x.Username == username);
+                string _id = u.id.ToString();
+                user.id = new MongoDB.Bson.ObjectId(_id);
+                await db.UpdateUser(user);
+                return Created("Updated", true);
+            }
+            catch
+            {
+                return BadRequest();
+            }
+    
         }
 
 

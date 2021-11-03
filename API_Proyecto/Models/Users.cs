@@ -19,8 +19,8 @@ namespace API_Proyecto.Models
 
         public string eMail { get; set; }
 
-        public List<Users> friendsList { get; set; }
+        public List<string> friendsList { get; set; }
 
-        public List<Users> requestsList { get; set; }
+        public List<string> requestsList { get; set; }
     }
 }
