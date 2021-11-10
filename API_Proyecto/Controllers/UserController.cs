@@ -19,20 +19,22 @@ namespace API_Proyecto.Controllers
     public class UserController : ControllerBase
     {
         //METODOS PARA MANEJO DE USUARIOS CON MONGO
-        private IUserCollection db = new UserCollection(); 
-        
+        private IUserCollection dbUsers = new UserCollection();
+        private IChatRoomCollection dbChats = new ChatRoomCollection();
+
+
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            return Ok(JsonSerializer.Serialize(await db.GetAllUsers()));
+            return Ok(JsonSerializer.Serialize(await dbUsers.GetAllUsers()));
         }
 
         [HttpGet("{username}")]
         public async Task<IActionResult> GetUserByUsername (string username) 
         {
-            List<Users> users = db.GetAllUsers().Result.ToList();
+            List<Users> users = dbUsers.GetAllUsers().Result.ToList();
             var u = users.Find(x => x.Username == username);
-            return Ok(JsonSerializer.Serialize(await db.GetUserById(u.id.ToString())));
+            return Ok(JsonSerializer.Serialize(await dbUsers.GetUserById(u.id.ToString())));
         }
 
         [HttpPost]
@@ -43,7 +45,7 @@ namespace API_Proyecto.Controllers
             var userList = new Users();
             string json = jsonUser.ToString();
             userList = JsonSerializer.Deserialize<Users>(json);
-            List<Users> users = db.GetAllUsers().Result.ToList();
+            List<Users> users = dbUsers.GetAllUsers().Result.ToList();
             foreach(Users u in users)
             {
                 if(u.Username == userList.Username)
@@ -52,12 +54,10 @@ namespace API_Proyecto.Controllers
                 }
             }
 
-            await db.AddUser(userList);
+            await dbUsers.AddUser(userList);
             return Created("Created", true) ;
         }
 
-
-        
         [HttpPost("access/login")]
         public IActionResult Login([FromBody] JsonElement jsonUser)
         {
@@ -66,7 +66,7 @@ namespace API_Proyecto.Controllers
             var user = new Users();
             string json = jsonUser.ToString();
             user = JsonSerializer.Deserialize<Users>(json);
-            List<Users> users = db.GetAllUsers().Result.ToList();
+            List<Users> users = dbUsers.GetAllUsers().Result.ToList();
             foreach (Users u in users)
             {
                 if (u.Username == user.Username && u.Password == user.Password)
@@ -92,11 +92,11 @@ namespace API_Proyecto.Controllers
             }
             try
             {
-                List<Users> users = db.GetAllUsers().Result.ToList();
+                List<Users> users = dbUsers.GetAllUsers().Result.ToList();
                 var u = users.Find(x => x.Username == username);
                 string _id = u.id.ToString();
                 user.id = new MongoDB.Bson.ObjectId(_id);
-                await db.UpdateUser(user);
+                await dbUsers.UpdateUser(user);
                 return Created("Updated", true);
             }
             catch
@@ -106,6 +106,69 @@ namespace API_Proyecto.Controllers
     
         }
 
+        [HttpGet("allchats")]
+        public async Task<IActionResult> GetChatRooms()
+        {
+            return Ok(JsonSerializer.Serialize(await dbChats.GetAllChatRooms()));
+        }
 
+        [HttpGet("chats/{username}")]
+        public async Task<IActionResult> GetChatByUsername (string username)
+        {
+            List<ChatRoom> chats = dbChats.GetAllChatRooms().Result.ToList();
+            List<ChatRoom> userChats = new List<ChatRoom>();
+
+            foreach(ChatRoom chat in chats)
+            {
+                if (chat.chatMembers.Contains(username))
+                {
+                    userChats.Add(chat);
+                }
+            }
+
+            
+            return Ok(JsonSerializer.Serialize(userChats));
+        }
+
+        [HttpPost("chats")]
+        public async Task<IActionResult> NewChat(JsonElement jsonChatRoom)
+        {
+
+            //Validacion Usuarios
+            var newchat = new ChatRoom();
+            string json = jsonChatRoom.ToString();
+            newchat = JsonSerializer.Deserialize<ChatRoom>(json);
+ 
+
+            await dbChats.NewChatroom(newchat);
+            return Created("Created", true);
+        }
+
+        //PUT api/<UserController>/5
+        [HttpPut("chats/{id}")]
+        public async Task<IActionResult> PutChat(string id, JsonElement jsonChat)
+        {
+            var currentChat = new ChatRoom();
+            string json = jsonChat.ToString();
+            currentChat = JsonSerializer.Deserialize<ChatRoom>(json);
+            if (currentChat == null)
+            {
+                return BadRequest();
+            }
+            try
+            {
+                List<ChatRoom> chatsList = dbChats.GetAllChatRooms().Result.ToList();
+                var u = chatsList.Find(x => x.id == id);
+                string _id = u.id.ToString();
+                //currentChat.id = new MongoDB.Bson.ObjectId(_id);
+                await dbChats.EditChat(currentChat);
+                return Created("Updated", true);
+            }
+            catch
+            {
+                return Conflict();
+            }
+
+        }
     }
 }

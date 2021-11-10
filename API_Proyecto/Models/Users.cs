@@ -22,5 +22,7 @@ namespace API_Proyecto.Models
         public List<string> friendsList { get; set; }
 
         public List<string> requestsList { get; set; }
+
+        public Dictionary<string,string> ChatRoomsIds { get; set; }
     }
 }

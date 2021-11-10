@@ -12,6 +12,9 @@ using Microsoft.AspNetCore.Session;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
 namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias
 {
     public class Startup
@@ -30,6 +33,14 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias
             services.AddMvc();
             services.AddDistributedMemoryCache();
             services.AddSession();
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+                options.CheckConsentNeeded = context => true;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+            });
+            services.AddSignalR();
+            //services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddJsonOptions(o =>
             {
                 o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
@@ -42,6 +53,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        [Obsolete]
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -66,6 +78,12 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapHub<ChatHub>("/chat"); 
+            });
+            app.UseCookiePolicy();
+            app.UseSignalR(routes =>
+            {
+                routes.MapHub<Class>("/Chat");
             });
         }
     }

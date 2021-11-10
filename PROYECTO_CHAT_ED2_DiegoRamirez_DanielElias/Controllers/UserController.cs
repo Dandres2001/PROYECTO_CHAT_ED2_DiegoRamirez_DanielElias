@@ -65,14 +65,10 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                     user.eMail = collection["eMail"];
                     user.friendsList = new List<string>();
                     user.requestsList = new List<string>();
+                    user.ChatRoomsIds = new Dictionary<string, string>();
                 };
 
                 HttpClient client = _api.Initial();
-               
-          
-
-
-
                 string json = System.Text.Json.JsonSerializer.Serialize(user);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
@@ -147,11 +143,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                 return View();
     }
 }
-        public ActionResult Chat()
-        {
-            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
-            return View();
-        }
+      
 
         //ACCIONES PARA AGREGAR CONTACTOS
         [HttpGet]
@@ -179,7 +171,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             }
             return View(userRequest);
         }
-
+        #region 
         public async Task<IActionResult> SendRequest(string user)
         {
             var receiver = new Users();
@@ -278,7 +270,33 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             response = await client.PutAsync("api/user/" + requester.Username, content);
             if (response.IsSuccessStatusCode)
             {
-               // ShowDialog("Contacto Agregado");
+                //CREAR CHATROOM ENTRE LOS DOS CONTACTOS
+                var newChatRoom = new ChatRoom();
+                newChatRoom.chatMembers = new List<string>();
+                newChatRoom.messagesList = new List<Messages>();
+                var guid = Guid.NewGuid();
+                newChatRoom.id = guid.ToString();
+                newChatRoom.chatMembers.Add(requester.Username);
+                newChatRoom.chatMembers.Add(currentUser.Username);
+                //AGREGAR EL CHAT ROOM EN LA LISTA DE ROOMS DE CADA USUARIO
+                currentUser.ChatRoomsIds.Add(newChatRoom.id.ToString(), requester.Username);
+                requester.ChatRoomsIds.Add(newChatRoom.id.ToString(), currentUser.Username);
+                //ACTUALIZAR USUARIOS Y CHATROOMS EN DB
+                //actualizar current
+                client = _api.Initial();
+                json = System.Text.Json.JsonSerializer.Serialize(currentUser);
+                content = new StringContent(json, Encoding.UTF8, "application/json");
+                response = await client.PutAsync("api/user/" + currentUser.Username, content);
+                //actualizar requester
+                json = System.Text.Json.JsonSerializer.Serialize(requester);
+                content = new StringContent(json, Encoding.UTF8, "application/json");
+                response = await client.PutAsync("api/user/" + requester.Username, content);
+                //crear chatroom en db
+                json = System.Text.Json.JsonSerializer.Serialize(newChatRoom);
+                content = new StringContent(json, Encoding.UTF8, "application/json");
+                response = await client.PostAsync("api/user/chats", content);
+
+                // ShowDialog("Contacto Agregado");
             }
             return RedirectToAction(nameof(ViewRequests));
         }
@@ -310,12 +328,112 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
             return RedirectToAction(nameof(ViewRequests));
         }
+        #endregion 
+
+          public async Task<IActionResult> Chat()
+        {
+            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+            var currentUser = new Users();
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/" + ViewBag.sessionv);
+            if (res.IsSuccessStatusCode)
+            {
+                var result = res.Content.ReadAsStringAsync().Result;
+                currentUser= System.Text.Json.JsonSerializer.Deserialize<Users>(result);
+
+            }
+
+            //OBTENER LOS NOMBRES DE LOS CHATS A MOSTRAR
+            res = await client.GetAsync("api/user/allchats");
+            var result1 = res.Content.ReadAsStringAsync().Result;
+            var AllChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result1);
+
+
+       
+            
+
+            return View(currentUser.ChatRoomsIds.Values.ToList());
+        }
+
+
+        public async Task<IActionResult> Room(string id)
+        {
+         
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/allchats");
+            var result = res.Content.ReadAsStringAsync().Result;
+            var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
+            var chatRoom = new ChatRoom();
+            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+            var currentUser = new Users();
+            client = _api.Initial();
+            res = await client.GetAsync("api/user/" + ViewBag.sessionv);
+            if (res.IsSuccessStatusCode)
+            {
+                result = res.Content.ReadAsStringAsync().Result;
+                currentUser = System.Text.Json.JsonSerializer.Deserialize<Users>(result);
+
+            }
+            string roomId = currentUser.ChatRoomsIds.FirstOrDefault(x => x.Value == id).Key;
+            ViewData["ChatWith"] = id;
+            foreach (ChatRoom chat in allChatRooms)
+            {
+                if(chat.id.ToString() == roomId)
+                {
+                    chatRoom = chat;
+                }
+            } 
+            return View(chatRoom);
+            
+
+        }
+        
+
+        public async Task<IActionResult> SendMessageAsync(string textMessage, string roomId, IFormCollection collection)
+        {
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/allchats");
+            var result = res.Content.ReadAsStringAsync().Result;
+            var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
+            var chatRoom = new ChatRoom();
+            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+            foreach (ChatRoom chat in allChatRooms)
+            {
+                if (chat.id.ToString() == roomId)
+                {
+                    chatRoom = chat;
+                }
+            }
+            //CREAR MENSAJE DE TEXTO
+            var newMessage = new Messages();
+            newMessage.Readers = chatRoom.chatMembers;
+            newMessage.SenderUsername = ViewBag.sessionv;
+            newMessage.Text = textMessage;
+            //aqui se deberia mandar a cifrar
+            chatRoom.messagesList.Add(newMessage);
+            //actualizar room en mongo
+            var json = System.Text.Json.JsonSerializer.Serialize(chatRoom);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await client.PutAsync("api/chats/" + chatRoom.id , content);
+
+            //ACCIONES PARA RETORNAR A LA VISTA DEL CHAT
+            string reciever;
+            if(chatRoom.chatMembers.Count == 2)
+            {
+                reciever = chatRoom.chatMembers.Find(x => x != ViewBag.sessionv);
+            }
+            else
+            {
+                reciever = chatRoom.GroupName;
+            }
+            return View(Room(reciever));
+        }
         // GET: UserController/Edit/5
         public ActionResult Edit(int id)
             {
                 return View();
             }
-
+         
             // POST: UserController/Edit/5
             [HttpPost]
             [ValidateAntiForgeryToken]
@@ -332,7 +450,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             }
 
         // GET: UserController/Delete/5
-        public ActionResult Delete(int id)
+        public ActionResult Delete(int id) 
         {
             return View();
         }

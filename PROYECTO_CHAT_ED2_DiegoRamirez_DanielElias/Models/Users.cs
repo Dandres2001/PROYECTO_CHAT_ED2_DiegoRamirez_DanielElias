@@ -22,7 +22,8 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Models
 
         public List<string> requestsList { get; set; }
 
-        
+        public Dictionary<string, string> ChatRoomsIds { get; set; }
+
 
     }
 }
