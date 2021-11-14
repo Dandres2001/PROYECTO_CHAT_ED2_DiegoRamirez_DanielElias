@@ -59,7 +59,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
                 var user = new Users();
                 {
-
+                    //aqui cifrar
                     user.Username = collection["Username"];
                     user.Password = collection["Password"];
                     user.eMail = collection["eMail"];
@@ -112,7 +112,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                 List<Users> usersList = db.GetAllUsers().ToList();
                 var user = new Users();
                 {
-
+                    //descifrar o cifrar 
                     user.Username = collection["Username"];
                     user.Password = collection["Password"];
                     user.eMail = collection["eMail"];
@@ -237,6 +237,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
         {
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
             var requester = new Users();
+            var llaves = new Diffie_Hellman();
             HttpClient client = _api.Initial();
             HttpResponseMessage res = await client.GetAsync("api/user/" + user);
             if (res.IsSuccessStatusCode)
@@ -273,11 +274,13 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                 //CREAR CHATROOM ENTRE LOS DOS CONTACTOS
                 var newChatRoom = new ChatRoom();
                 newChatRoom.chatMembers = new List<string>();
+                
                 newChatRoom.messagesList = new List<Messages>();
                 var guid = Guid.NewGuid();
                 newChatRoom.id = guid.ToString();
                 newChatRoom.chatMembers.Add(requester.Username);
                 newChatRoom.chatMembers.Add(currentUser.Username);
+                newChatRoom.keys = llaves.getpublickey();
                 //AGREGAR EL CHAT ROOM EN LA LISTA DE ROOMS DE CADA USUARIO
                 currentUser.ChatRoomsIds.Add(newChatRoom.id.ToString(), requester.Username);
                 requester.ChatRoomsIds.Add(newChatRoom.id.ToString(), currentUser.Username);
@@ -361,11 +364,15 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
          
             HttpClient client = _api.Initial();
             HttpResponseMessage res = await client.GetAsync("api/user/allchats");
+           
+            var decypherSDES = new SDES();
             var result = res.Content.ReadAsStringAsync().Result;
             var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
             var chatRoom = new ChatRoom();
+            List<string> mensajesdescifrados = new List<string>();
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
             var currentUser = new Users();
+            var keys = new Diffie_Hellman();
             client = _api.Initial();
             res = await client.GetAsync("api/user/" + ViewBag.sessionv);
             if (res.IsSuccessStatusCode)
@@ -380,7 +387,19 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             {
                 if(chat.id.ToString() == roomId)
                 {
+                    
                     chatRoom = chat;
+                    //aqui se descifran los mensajes
+                    foreach (Messages s in chatRoom.messagesList) {
+
+
+                        string descifrado = decypherSDES.Decypher(keys.getprivatekey(chatRoom.keys), s.Text);
+                        s.Text = descifrado;
+                       
+                    
+                    
+                    }
+                   
                 }
             } 
             return View(chatRoom);
@@ -397,6 +416,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
             var chatRoom = new ChatRoom();
             var cifradoSDES = new SDES();
+            var key = new Diffie_Hellman();
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
             foreach (ChatRoom chat in allChatRooms)
             {
@@ -410,15 +430,16 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             newMessage.Readers = chatRoom.chatMembers;
             
             newMessage.SenderUsername = ViewBag.sessionv;
-            newMessage.Text = textMessage;
+            //newMessage.Text = textMessage;
             //aqui
-            //newMessage.Text= cifradoSDES.Cypher("55", textMessage);
+
+            newMessage.Text = cifradoSDES.Cypher(key.getprivatekey(chatRoom.keys), textMessage);
             //aqui se deberia mandar a cifrar
             chatRoom.messagesList.Add(newMessage);
             //actualizar room en mongo
             var json = System.Text.Json.JsonSerializer.Serialize(chatRoom);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await client.PutAsync("api/chats/" + chatRoom.id , content);
+            var response = await client.PutAsync("api/user/chats/" + chatRoom.id , content);
 
             //ACCIONES PARA RETORNAR A LA VISTA DEL CHAT
             string reciever;

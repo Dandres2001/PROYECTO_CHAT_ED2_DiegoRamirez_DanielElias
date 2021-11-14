@@ -8,35 +8,7 @@ namespace LibreriaRD
     public class Diffie_Hellman
     {
 
-        public List<int> calcularPG()
-        {
-            List<int> PG = null;
-            Random rand = new Random();
-            int modulus = 0;
-            bool correcto = false;
-            while (correcto != true)
-            {
-                modulus = rand.Next(256, 1000);
-                if (EsPrimo(modulus) == true)
-                {
-                    correcto = true;
-                }
-
-            }
-            int generator = rand.Next(2, 100);
-            PG.Add(modulus);
-            PG.Add(generator);
-            int a = rand.Next(3, modulus - 1);
-            int b = rand.Next(3, modulus - 1);
-            if (a == b)
-            {
-                a = a - 1;
-            }
-            PG.Add(a);
-            PG.Add(a);
-
-            return PG;
-        }
+    
 
         public List<string> getpublickey()
         {

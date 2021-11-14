@@ -174,9 +174,10 @@ namespace LibreriaRD
         public string Cypher(string llave, string mensaje)
         {
 
-            byte[] message = mensaje.SelectMany(BitConverter.GetBytes).ToArray();
+            byte[] message = GetBytes(mensaje);
 
-                string[,] So = { { "01","00","11","10"},
+
+            string[,] So = { { "01","00","11","10"},
                              { "11","10","01","00"},
                              { "00","10","01","11"},
                              { "11","01","11","10"} };
@@ -200,9 +201,7 @@ namespace LibreriaRD
             for (int i = 0; i < message.Length; i++)
             {
 
-                if (message[i] != 0)
-                {
-
+             
                     string Charenbinario = Convert.ToString(message[i], 2);
 
                     string caracterenbinario = "";
@@ -303,13 +302,10 @@ namespace LibreriaRD
 
                     int mensajefinal = Convert.ToInt32(mensajepi, 2);
                     Mensajecifrado.Add((byte)mensajefinal);
-                }
-                else
-                {
-                    Mensajecifrado.Add(message[i]);
-                }
+             
             }
-            string mensajito = BitConverter.ToString(Mensajecifrado.ToArray());
+            string mensajito = GetString(Mensajecifrado.ToArray());
+            int probar = mensajito.Length;
             return mensajito;
         }
         static byte[] GetBytes(string str)
@@ -325,8 +321,11 @@ namespace LibreriaRD
             System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
             return new string(chars);
         }
-        public List<byte> Decypher(string llave, byte[] mensaje)
+      
+        public string Decypher(string llave, string mensaje)
         {
+            byte[] message = GetBytes(mensaje);
+
             string[,] So = { { "01","00","11","10"},
                              { "11","10","01","00"},
                              { "00","10","01","11"},
@@ -348,115 +347,115 @@ namespace LibreriaRD
 
             string[] keys = GenerarLlave(llave, P10, P8);
 
-            for (int i = 0; i < mensaje.Length; i++)
+            for (int i = 0; i < message.Length; i++)
             {
 
+           
 
+                    string Charenbinario = Convert.ToString(message[i], 2);
 
-                string Charenbinario = Convert.ToString(mensaje[i], 2);
-
-                string caracterenbinario = "";
-                if (Charenbinario.Length < 8)
-                {
-                    string aux = "";
-                    for (int m = 0; m < 8 - Charenbinario.Length; m++)
+                    string caracterenbinario = "";
+                    if (Charenbinario.Length < 8)
                     {
+                        string aux = "";
+                        for (int m = 0; m < 8 - Charenbinario.Length; m++)
+                        {
 
-                        aux += "0";
+                            aux += "0";
 
+                        }
+
+                        caracterenbinario += aux + Charenbinario;
+                        aux = "";
+                    }
+                    else
+                    {
+                        caracterenbinario = Charenbinario;
                     }
 
-                    caracterenbinario += aux + Charenbinario;
-                    aux = "";
-                }
-                else
-                {
-                    caracterenbinario = Charenbinario;
-                }
+                    //primer permutacion
+                    string MensajeIP = IP(IPQ, caracterenbinario);
 
-                //primer permutacion
-                string MensajeIP = IP(IPQ, caracterenbinario);
+                    //separacion izquierda 1
+                    string izquierda = MensajeIP.Substring(0, 4);
+                    //separacion derecha 1
+                    string derecha = MensajeIP.Substring(4, 4);
 
-                //separacion izquierda 1
-                string izquierda = MensajeIP.Substring(0, 4);
-                //separacion derecha 1
-                string derecha = MensajeIP.Substring(4, 4);
-
-                //EXPANDIR Y PERMUTAR
-                string MensajeEp = EP(EPQ, derecha);
+                    //EXPANDIR Y PERMUTAR
+                    string MensajeEp = EP(EPQ, derecha);
 
 
-                //suma
-                string suma1 = Suma(MensajeEp, keys[1]);
-                //suma izquierda
-                string suma1Izquierda = suma1.Substring(0, 4);
-                //suma derecha
-                string suma1derecha = suma1.Substring(4, 4);
+                    //suma
+                    string suma1 = Suma(MensajeEp, keys[1]);
+                    //suma izquierda
+                    string suma1Izquierda = suma1.Substring(0, 4);
+                    //suma derecha
+                    string suma1derecha = suma1.Substring(4, 4);
 
-                //FILAS Y COLUMNAS
-                string combinacion = suma1Izquierda.Substring(0, 1) + suma1Izquierda.Substring(3, 1);
+                    //FILAS Y COLUMNAS
+                    string combinacion = suma1Izquierda.Substring(0, 1) + suma1Izquierda.Substring(3, 1);
 
-                int fila = Convert.ToInt32(combinacion, 2);
+                    int fila = Convert.ToInt32(combinacion, 2);
 
-                combinacion = suma1Izquierda.Substring(1, 1) + suma1Izquierda.Substring(2, 1);
-                int col = Convert.ToInt32(combinacion, 2);
+                    combinacion = suma1Izquierda.Substring(1, 1) + suma1Izquierda.Substring(2, 1);
+                    int col = Convert.ToInt32(combinacion, 2);
 
-                combinacion = suma1derecha.Substring(0, 1) + suma1derecha.Substring(3, 1);
-                int fila1 = Convert.ToInt32(combinacion, 2);
+                    combinacion = suma1derecha.Substring(0, 1) + suma1derecha.Substring(3, 1);
+                    int fila1 = Convert.ToInt32(combinacion, 2);
 
-                combinacion = suma1derecha.Substring(1, 1) + suma1derecha.Substring(2, 1);
-                int col2 = Convert.ToInt32(combinacion, 2);
-                string Scombinada = So[fila, col] + S1[fila1, col2];
+                    combinacion = suma1derecha.Substring(1, 1) + suma1derecha.Substring(2, 1);
+                    int col2 = Convert.ToInt32(combinacion, 2);
+                    string Scombinada = So[fila, col] + S1[fila1, col2];
 
-                //PERMTUACION 4
-                string mensajeP4 = P4(P4Q, Scombinada);
-                //SUMA
-                suma1 = Suma(mensajeP4, izquierda);
+                    //PERMTUACION 4
+                    string mensajeP4 = P4(P4Q, Scombinada);
+                    //SUMA
+                    suma1 = Suma(mensajeP4, izquierda);
 
-                //SWAP MENSAJE
-                string mensajesw = derecha + suma1;
+                    //SWAP MENSAJE
+                    string mensajesw = derecha + suma1;
 
-                //SEPARACION IZQUIERDA, DERCHA
-                izquierda = mensajesw.Substring(0, 4);
-                derecha = mensajesw.Substring(4, 4);
+                    //SEPARACION IZQUIERDA, DERCHA
+                    izquierda = mensajesw.Substring(0, 4);
+                    derecha = mensajesw.Substring(4, 4);
 
 
-                string MensaEP2 = EP(EPQ, derecha);
+                    string MensaEP2 = EP(EPQ, derecha);
 
-                //SUMA
-                suma1 = Suma(MensaEP2, keys[0]);
+                    //SUMA
+                    suma1 = Suma(MensaEP2, keys[0]);
 
-                // SEPARADOR DE SUMA
-                suma1Izquierda = suma1.Substring(0, 4);
-                suma1derecha = suma1.Substring(4, 4);
+                    // SEPARADOR DE SUMA
+                    suma1Izquierda = suma1.Substring(0, 4);
+                    suma1derecha = suma1.Substring(4, 4);
 
-                //FILAS Y COLUMNAS
-                combinacion = suma1Izquierda.Substring(0, 1) + suma1Izquierda.Substring(3, 1);
-                fila = Convert.ToInt32(combinacion, 2);
-                combinacion = suma1Izquierda.Substring(1, 1) + suma1Izquierda.Substring(2, 1);
-                col = Convert.ToInt32(combinacion, 2);
-                combinacion = suma1derecha.Substring(0, 1) + suma1derecha.Substring(3, 1);
+                    //FILAS Y COLUMNAS
+                    combinacion = suma1Izquierda.Substring(0, 1) + suma1Izquierda.Substring(3, 1);
+                    fila = Convert.ToInt32(combinacion, 2);
+                    combinacion = suma1Izquierda.Substring(1, 1) + suma1Izquierda.Substring(2, 1);
+                    col = Convert.ToInt32(combinacion, 2);
+                    combinacion = suma1derecha.Substring(0, 1) + suma1derecha.Substring(3, 1);
 
-                fila1 = Convert.ToInt32(combinacion, 2);
-                combinacion = suma1derecha.Substring(1, 1) + suma1derecha.Substring(2, 1);
-                col2 = Convert.ToInt32(combinacion, 2);
+                    fila1 = Convert.ToInt32(combinacion, 2);
+                    combinacion = suma1derecha.Substring(1, 1) + suma1derecha.Substring(2, 1);
+                    col2 = Convert.ToInt32(combinacion, 2);
 
-                Scombinada = So[fila, col] + S1[fila1, col2];
+                    Scombinada = So[fila, col] + S1[fila1, col2];
 
-                string mensajeP42 = P4(P4Q, Scombinada);
+                    string mensajeP42 = P4(P4Q, Scombinada);
 
-                // SUMA1 
-                suma1 = Suma(izquierda, mensajeP42);
+                    // SUMA1 
+                    suma1 = Suma(izquierda, mensajeP42);
 
-                //PERMUTACION IP-1
-                string mensajepi = IP1(IP1Q, suma1 + derecha);
+                    //PERMUTACION IP-1
+                    string mensajepi = IP1(IP1Q, suma1 + derecha);
 
-                int mensajefinal = Convert.ToInt32(mensajepi, 2);
-                Mensajecifrado.Add((byte)mensajefinal);
+                    int mensajefinal = Convert.ToInt32(mensajepi, 2);
+                    Mensajecifrado.Add((byte)mensajefinal);
+           
             }
-
-
-            return Mensajecifrado;
+            string mensajito = GetString(Mensajecifrado.ToArray());
+            return mensajito;
         }
     }
 }
