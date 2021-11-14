@@ -16,8 +16,8 @@
     .card {
         position: relative;
         height: 500px;
-        width: 800px;
-        border-radius: 15px !important;
+        width: 1000px;
+        border-radius: 12px !important;
         background-color: rgba(0,0,0,0.4) !important;
     }
 
@@ -37,6 +37,7 @@
     }
 
     .card-footer {
+        position: relative;
         border-radius: 0 0 15px 15px !important;
         border-top: 0 !important;
     }
@@ -179,8 +180,9 @@
         margin-top: auto;
         margin-bottom: auto;
         margin-left: 10px;
-        border-radius: 12px;
-        background-color: #708090;
+        border-radius: 15px;
+        background-color: #4682B4;
+        border-bottom-right-radius: 0px;
         padding: 10px;
         position: relative;
     }
@@ -189,8 +191,9 @@
         margin-top: auto;
         margin-bottom: auto;
         margin-right: 10px;
-        border-radius: 12px;
-        background-color: #4682B4;
+        border-radius: 15px;
+        
+        background-color: #708090;
         padding: 10px;
         position: relative;
     }
@@ -313,11 +316,23 @@
     .dropdown:hover .dropbtn {
         background-color: #3e8e41;
     }
+
+    .datestring {
+
+        float:right;
+        align-content: center;
+        font-size:10px;
+        color: white;
+       
+    }
 </style>
 
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<div>
+    <a asp-action="Chat">Ir a chats</a>
+</div>
 <div class="col-xl-8 col-xl-8 chat">
     <div class="card">
         <div class="card-header msg_head">
@@ -337,31 +352,38 @@
                 {
                     @if (message.SenderUsername == ViewBag.sessionv)
                     {
-                        <ul class="msg_cotainer_send">
-                            
-                                <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
-                                <div class="dropdown">
-                                    <button onclick="" style="float: right;"class="dropbtn">...</button>
-                                    <div class="dropdown-content">
-                                        <a href="#">Eliminar para mi</a>
-                                        <a href="#">Eliminar para todos</a>
-                                    </div>
+                        <ul class="msg_cotainer">
+
+                            <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
+                            <div style="float:right" class="dropdown">
+                                <button onclick="" style="float: right;" class="dropbtn">...</button>
+                                <div class="dropdown-content">
+                                    <a value="@Model.id" href="@Url.ActionLink("DeleteForMe", "User", new { msgId = message.id, roomId = Model.id})">Eliminar para mi</a>
+                                    <a value="@Model.id" href="@Url.ActionLink("DeleteForAll", "User", new { msgId = message.id, roomId = Model.id})">Eliminar para todos</a>
                                 </div>
-                             
-                          
-                        
+                            </div>
+                            <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
+
+                        </ul>
+                        <ul class="container">
                         </ul>
                     }
                     else
                     {
-                        <ul class="msg_cotainer">
+                        <ul class="msg_cotainer_send">
+                            <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
                             <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
-                       
+
+
+
+                        </ul>
+                        <ul class="container">
                         </ul>
                     }
                 }
-
             }
+
+            
 
 
 
@@ -384,7 +406,7 @@
                     $("button").click(function () {
                         $.ajax({
                             type: "POST",
-                            url: "@Url.Action("SendMessage")",
+                            url: "@Url.Action("SendMessage", "User")",
                             data: { textMessage: $('#textMessage').val(), roomId: $(this).val()}
                         })
                     })

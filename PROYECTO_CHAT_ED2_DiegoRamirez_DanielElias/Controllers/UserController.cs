@@ -389,7 +389,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
         }
         
 
-        public async Task<IActionResult> SendMessageAsync(string textMessage, string roomId, IFormCollection collection)
+        public async Task<IActionResult> SendMessageAsync(string textMessage, string roomId)
         {
             HttpClient client = _api.Initial();
             HttpResponseMessage res = await client.GetAsync("api/user/allchats");
@@ -406,9 +406,11 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             }
             //CREAR MENSAJE DE TEXTO
             var newMessage = new Messages();
+            newMessage.id = Guid.NewGuid().ToString();
             newMessage.Readers = chatRoom.chatMembers;
             newMessage.SenderUsername = ViewBag.sessionv;
             newMessage.Text = textMessage;
+            newMessage.date = DateTime.Now.ToString();
             //aqui se deberia mandar a cifrar
             chatRoom.messagesList.Add(newMessage);
             //actualizar room en mongo
@@ -426,28 +428,91 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             {
                 reciever = chatRoom.GroupName;
             }
-            return  View(Room(reciever));
+            return  RedirectToAction(nameof(Room), new { id = reciever});
         }
-        // GET: UserController/Edit/5
-        public ActionResult Edit(int id)
+
+        public async Task<IActionResult> DeleteForMe(string roomId, string msgId)
+        {
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/allchats");
+            var result = res.Content.ReadAsStringAsync().Result;
+            var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
+            var chatRoom = new ChatRoom();
+            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+            foreach (ChatRoom chat in allChatRooms)
             {
-                return View();
-            }
-         
-            // POST: UserController/Edit/5
-            [HttpPost]
-            [ValidateAntiForgeryToken]
-            public ActionResult Edit(int id, IFormCollection collection)
-            {
-                try
+                if (chat.id.ToString() == roomId)
                 {
-                    return RedirectToAction(nameof(Index));
-                }
-                catch
-                {
-                    return View();
+                    chatRoom = chat;
+
                 }
             }
+            foreach( Messages message in chatRoom.messagesList)
+            {
+                if(message.id == msgId)
+                {
+                    message.Readers.Remove(ViewBag.sessionv);
+                }
+            }
+            var json = System.Text.Json.JsonSerializer.Serialize(chatRoom);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            res = await client.PutAsync("api/user/chats/" + chatRoom.id, content);
+            //ACCIONES PARA RETORNAR A LA VISTA DEL CHAT
+            string reciever;
+            if (chatRoom.chatMembers.Count == 2)
+            {
+                reciever = chatRoom.chatMembers.Find(x => x != ViewBag.sessionv);
+            }
+            else
+            {
+                reciever = chatRoom.GroupName;
+            }
+            return RedirectToAction(nameof(Room), new { id = reciever });
+
+
+        }
+
+        public async Task<IActionResult> DeleteForAll(string roomId, string msgId)
+        {
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/allchats");
+            var result = res.Content.ReadAsStringAsync().Result;
+            var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
+            var chatRoom = new ChatRoom();
+            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+            foreach (ChatRoom chat in allChatRooms)
+            {
+                if (chat.id.ToString() == roomId)
+                {
+                    chatRoom = chat;
+
+                }
+            }
+            foreach (Messages message in chatRoom.messagesList)
+            {
+                if (message.id == msgId)
+                {
+                    message.Readers.Clear();
+                }
+            }
+            var json = System.Text.Json.JsonSerializer.Serialize(chatRoom);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            res = await client.PutAsync("api/user/chats/" + chatRoom.id, content);
+            //ACCIONES PARA RETORNAR A LA VISTA DEL CHAT
+            string reciever;
+            if (chatRoom.chatMembers.Count == 2)
+            {
+                reciever = chatRoom.chatMembers.Find(x => x != ViewBag.sessionv);
+            }
+            else
+            {
+                reciever = chatRoom.GroupName;
+            }
+            return RedirectToAction(nameof(Room), new { id = reciever });
+
+
+        }
+
 
         // GET: UserController/Delete/5
         public ActionResult Delete(int id) 
