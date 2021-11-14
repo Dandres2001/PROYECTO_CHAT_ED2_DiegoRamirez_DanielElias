@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
+using LibreriaRD;
 using System.Text;
 using System.Text.Json;
 
@@ -63,15 +63,19 @@ namespace API_Proyecto.Controllers
         {
 
             //Validacion Usuarios
+            var cifradoSDES = new SDES(); 
             var user = new Users();
             string json = jsonUser.ToString();
             user = JsonSerializer.Deserialize<Users>(json);
             List<Users> users = dbUsers.GetAllUsers().Result.ToList();
             foreach (Users u in users)
             {
-                if (u.Username == user.Username && u.Password == user.Password)
+                if (u.Username == user.Username)
                 {
-                    return Ok();
+                    if (u.Username == user.Username && u.Password == cifradoSDES.Cypher(u.key, user.Password))
+                    {
+                        return Ok();
+                    }
                 }
             }
 

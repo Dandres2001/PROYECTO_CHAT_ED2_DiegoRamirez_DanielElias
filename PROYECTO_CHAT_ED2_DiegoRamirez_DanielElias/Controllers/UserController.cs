@@ -54,14 +54,17 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(IFormCollection collection)
         {
+            var cifrdadoSDES = new SDES();
             try
             {
-
+                Random rand = new Random();
                 var user = new Users();
                 {
-                    //aqui cifrar
+                   
                     user.Username = collection["Username"];
                     user.Password = collection["Password"];
+                    user.key = rand.Next(1, 500).ToString();
+                    user.Password = cifrdadoSDES.Cypher(user.key,user.Password);
                     user.eMail = collection["eMail"];
                     user.friendsList = new List<string>();
                     user.requestsList = new List<string>();
