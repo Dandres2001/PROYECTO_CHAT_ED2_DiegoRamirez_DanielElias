@@ -14,7 +14,9 @@
     }
 
     .card {
+        position: relative;
         height: 500px;
+        width: 800px;
         border-radius: 15px !important;
         background-color: rgba(0,0,0,0.4) !important;
     }
@@ -177,8 +179,8 @@
         margin-top: auto;
         margin-bottom: auto;
         margin-left: 10px;
-        border-radius: 25px;
-        background-color: #82ccdd;
+        border-radius: 12px;
+        background-color: #708090;
         padding: 10px;
         position: relative;
     }
@@ -187,8 +189,8 @@
         margin-top: auto;
         margin-bottom: auto;
         margin-right: 10px;
-        border-radius: 25px;
-        background-color: #78e08f;
+        border-radius: 12px;
+        background-color: #4682B4;
         padding: 10px;
         position: relative;
     }
@@ -270,6 +272,47 @@
     ul {
         list-style-type: none;
     }
+
+    .dropbtn {
+        background-color: #808080;
+        
+        color: white;
+        padding: 8px;
+        font-size: 8px;
+        border: none;
+    }
+
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #808080;
+        min-width: 160px;
+        box-shadow: 0px 8px 8px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+    }
+
+        .dropdown-content a {
+            color: black;
+            padding: 6px 6px;
+            text-decoration: none;
+            display: block;
+        }
+            .dropdown-content a:hover {
+                background-color: #ddd;
+            }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .dropbtn {
+        background-color: #3e8e41;
+    }
 </style>
 
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
@@ -285,17 +328,46 @@
             </div>
         </div>
         <div class="card-body msg_card_body">
-            <ul>
 
 
-                @foreach (var message in Model.messagesList)
+
+            @foreach (var message in Model.messagesList)
+            {
+                @if (message.Readers.Contains(ViewBag.sessionv))
                 {
-                    <li> @Html.DisplayFor(modelItem => message.Text)</li>
+                    @if (message.SenderUsername == ViewBag.sessionv)
+                    {
+                        <ul class="msg_cotainer_send">
+                            
+                                <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
+                                <div class="dropdown">
+                                    <button onclick="" style="float: right;"class="dropbtn">...</button>
+                                    <div class="dropdown-content">
+                                        <a href="#">Eliminar para mi</a>
+                                        <a href="#">Eliminar para todos</a>
+                                    </div>
+                                </div>
+                             
+                          
+                        
+                        </ul>
+                    }
+                    else
+                    {
+                        <ul class="msg_cotainer">
+                            <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
+                       
+                        </ul>
+                    }
                 }
 
+            }
 
 
-            </ul>
+
+
+
+
 
         </div>
         <div class="card-footer">

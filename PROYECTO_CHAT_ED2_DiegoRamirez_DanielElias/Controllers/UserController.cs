@@ -414,7 +414,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             //actualizar room en mongo
             var json = System.Text.Json.JsonSerializer.Serialize(chatRoom);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await client.PutAsync("api/chats/" + chatRoom.id , content);
+            var response = await client.PutAsync("api/user/chats/" + chatRoom.id , content);
 
             //ACCIONES PARA RETORNAR A LA VISTA DEL CHAT
             string reciever;
@@ -426,7 +426,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             {
                 reciever = chatRoom.GroupName;
             }
-            return View(Room(reciever));
+            return  View(Room(reciever));
         }
         // GET: UserController/Edit/5
         public ActionResult Edit(int id)
