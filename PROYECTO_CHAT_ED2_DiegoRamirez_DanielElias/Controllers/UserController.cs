@@ -13,7 +13,7 @@ using System.Text;
 using System.Text.Json;
 using Newtonsoft.Json;
 using System.Text.Json.Serialization;
-
+using LibreriaRD;
 namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 {
     public class UserController : Controller
@@ -396,6 +396,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             var result = res.Content.ReadAsStringAsync().Result;
             var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
             var chatRoom = new ChatRoom();
+            var cifradoSDES = new SDES();
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
             foreach (ChatRoom chat in allChatRooms)
             {
@@ -407,8 +408,11 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             //CREAR MENSAJE DE TEXTO
             var newMessage = new Messages();
             newMessage.Readers = chatRoom.chatMembers;
+            
             newMessage.SenderUsername = ViewBag.sessionv;
             newMessage.Text = textMessage;
+            //aqui
+            //newMessage.Text= cifradoSDES.Cypher("55", textMessage);
             //aqui se deberia mandar a cifrar
             chatRoom.messagesList.Add(newMessage);
             //actualizar room en mongo

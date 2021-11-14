@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
+using System.IO;
 
 namespace LibreriaRD
 {
@@ -169,10 +171,12 @@ namespace LibreriaRD
             }
         }
 
-        public List<byte> Cypher(string llave, byte[] mensaje, int[] P4Q, int[] EPQ, int[] IPQ, int[] IP1Q, int[] P10, int[] P8)
+        public string Cypher(string llave, string mensaje)
         {
 
-            string[,] So = { { "01","00","11","10"},
+            byte[] message = mensaje.SelectMany(BitConverter.GetBytes).ToArray();
+
+                string[,] So = { { "01","00","11","10"},
                              { "11","10","01","00"},
                              { "00","10","01","11"},
                              { "11","01","11","10"} };
@@ -181,122 +185,147 @@ namespace LibreriaRD
                              { "10","00","01","11"},
                              { "11","00","01","00"},
                              { "10","01","00","11"} };
+            int[] P4Q = new int[] {2,4,3,1 };
+            int[] EPQ = new int[] { 4, 1, 2, 3, 2, 3, 4, 1 };
+            int[] IPQ = new int[] { 2, 6, 3, 1, 4, 8, 5, 7 };
+            int[] IP1Q = new int[] { 4, 1, 3, 5, 7, 2, 8, 6 };
+            int[] P10 = new int[] { 3, 5, 2, 7, 4, 10, 1, 9, 8, 6 };
+            int[] P8 = new int[] { 6, 3, 7, 4, 8, 5, 10, 9 };
+       
 
             List<byte> Mensajecifrado = new List<byte>();
 
             string[] keys = GenerarLlave(llave, P10, P8);
 
-            for (int i = 0; i < mensaje.Length; i++)
+            for (int i = 0; i < message.Length; i++)
             {
 
-
-
-                string Charenbinario = Convert.ToString(mensaje[i], 2);
-
-                string caracterenbinario = "";
-                if (Charenbinario.Length < 8)
+                if (message[i] != 0)
                 {
-                    string aux = "";
-                    for (int m = 0; m < 8 - Charenbinario.Length; m++)
+
+                    string Charenbinario = Convert.ToString(message[i], 2);
+
+                    string caracterenbinario = "";
+                    if (Charenbinario.Length < 8)
                     {
+                        string aux = "";
+                        for (int m = 0; m < 8 - Charenbinario.Length; m++)
+                        {
 
-                        aux += "0";
+                            aux += "0";
 
+                        }
+
+                        caracterenbinario += aux + Charenbinario;
+                        aux = "";
+                    }
+                    else
+                    {
+                        caracterenbinario = Charenbinario;
                     }
 
-                    caracterenbinario += aux + Charenbinario;
-                    aux = "";
+                    //primer permutacion
+                    string MensajeIP = IP(IPQ, caracterenbinario);
+
+                    //separacion izquierda 1
+                    string izquierda = MensajeIP.Substring(0, 4);
+                    //separacion derecha 1
+                    string derecha = MensajeIP.Substring(4, 4);
+
+                    //EXPANDIR Y PERMUTAR
+                    string MensajeEp = EP(EPQ, derecha);
+
+
+                    //suma
+                    string suma1 = Suma(MensajeEp, keys[0]);
+                    //suma izquierda
+                    string suma1Izquierda = suma1.Substring(0, 4);
+                    //suma derecha
+                    string suma1derecha = suma1.Substring(4, 4);
+
+                    //FILAS Y COLUMNAS
+                    string combinacion = suma1Izquierda.Substring(0, 1) + suma1Izquierda.Substring(3, 1);
+
+                    int fila = Convert.ToInt32(combinacion, 2);
+
+                    combinacion = suma1Izquierda.Substring(1, 1) + suma1Izquierda.Substring(2, 1);
+                    int col = Convert.ToInt32(combinacion, 2);
+
+                    combinacion = suma1derecha.Substring(0, 1) + suma1derecha.Substring(3, 1);
+                    int fila1 = Convert.ToInt32(combinacion, 2);
+
+                    combinacion = suma1derecha.Substring(1, 1) + suma1derecha.Substring(2, 1);
+                    int col2 = Convert.ToInt32(combinacion, 2);
+                    string Scombinada = So[fila, col] + S1[fila1, col2];
+
+                    //PERMTUACION 4
+                    string mensajeP4 = P4(P4Q, Scombinada);
+                    //SUMA
+                    suma1 = Suma(mensajeP4, izquierda);
+
+                    //SWAP MENSAJE
+                    string mensajesw = derecha + suma1;
+
+                    //SEPARACION IZQUIERDA, DERCHA
+                    izquierda = mensajesw.Substring(0, 4);
+                    derecha = mensajesw.Substring(4, 4);
+
+
+                    string MensaEP2 = EP(EPQ, derecha);
+
+                    //SUMA
+                    suma1 = Suma(MensaEP2, keys[1]);
+
+                    // SEPARADOR DE SUMA
+                    suma1Izquierda = suma1.Substring(0, 4);
+                    suma1derecha = suma1.Substring(4, 4);
+
+                    //FILAS Y COLUMNAS
+                    combinacion = suma1Izquierda.Substring(0, 1) + suma1Izquierda.Substring(3, 1);
+                    fila = Convert.ToInt32(combinacion, 2);
+                    combinacion = suma1Izquierda.Substring(1, 1) + suma1Izquierda.Substring(2, 1);
+                    col = Convert.ToInt32(combinacion, 2);
+                    combinacion = suma1derecha.Substring(0, 1) + suma1derecha.Substring(3, 1);
+
+                    fila1 = Convert.ToInt32(combinacion, 2);
+                    combinacion = suma1derecha.Substring(1, 1) + suma1derecha.Substring(2, 1);
+                    col2 = Convert.ToInt32(combinacion, 2);
+
+                    Scombinada = So[fila, col] + S1[fila1, col2];
+
+                    string mensajeP42 = P4(P4Q, Scombinada);
+
+                    // SUMA1 
+                    suma1 = Suma(izquierda, mensajeP42);
+
+                    //PERMUTACION IP-1
+                    string mensajepi = IP1(IP1Q, suma1 + derecha);
+
+                    int mensajefinal = Convert.ToInt32(mensajepi, 2);
+                    Mensajecifrado.Add((byte)mensajefinal);
                 }
                 else
                 {
-                    caracterenbinario = Charenbinario;
+                    Mensajecifrado.Add(message[i]);
                 }
-
-                //primer permutacion
-                string MensajeIP = IP(IPQ, caracterenbinario);
-
-                //separacion izquierda 1
-                string izquierda = MensajeIP.Substring(0, 4);
-                //separacion derecha 1
-                string derecha = MensajeIP.Substring(4, 4);
-
-                //EXPANDIR Y PERMUTAR
-                string MensajeEp = EP(EPQ, derecha);
-
-
-                //suma
-                string suma1 = Suma(MensajeEp, keys[0]);
-                //suma izquierda
-                string suma1Izquierda = suma1.Substring(0, 4);
-                //suma derecha
-                string suma1derecha = suma1.Substring(4, 4);
-
-                //FILAS Y COLUMNAS
-                string combinacion = suma1Izquierda.Substring(0, 1) + suma1Izquierda.Substring(3, 1);
-
-                int fila = Convert.ToInt32(combinacion, 2);
-
-                combinacion = suma1Izquierda.Substring(1, 1) + suma1Izquierda.Substring(2, 1);
-                int col = Convert.ToInt32(combinacion, 2);
-
-                combinacion = suma1derecha.Substring(0, 1) + suma1derecha.Substring(3, 1);
-                int fila1 = Convert.ToInt32(combinacion, 2);
-
-                combinacion = suma1derecha.Substring(1, 1) + suma1derecha.Substring(2, 1);
-                int col2 = Convert.ToInt32(combinacion, 2);
-                string Scombinada = So[fila, col] + S1[fila1, col2];
-
-                //PERMTUACION 4
-                string mensajeP4 = P4(P4Q, Scombinada);
-                //SUMA
-                suma1 = Suma(mensajeP4, izquierda);
-
-                //SWAP MENSAJE
-                string mensajesw = derecha + suma1;
-
-                //SEPARACION IZQUIERDA, DERCHA
-                izquierda = mensajesw.Substring(0, 4);
-                derecha = mensajesw.Substring(4, 4);
-
-
-                string MensaEP2 = EP(EPQ, derecha);
-
-                //SUMA
-                suma1 = Suma(MensaEP2, keys[1]);
-
-                // SEPARADOR DE SUMA
-                suma1Izquierda = suma1.Substring(0, 4);
-                suma1derecha = suma1.Substring(4, 4);
-
-                //FILAS Y COLUMNAS
-                combinacion = suma1Izquierda.Substring(0, 1) + suma1Izquierda.Substring(3, 1);
-                fila = Convert.ToInt32(combinacion, 2);
-                combinacion = suma1Izquierda.Substring(1, 1) + suma1Izquierda.Substring(2, 1);
-                col = Convert.ToInt32(combinacion, 2);
-                combinacion = suma1derecha.Substring(0, 1) + suma1derecha.Substring(3, 1);
-
-                fila1 = Convert.ToInt32(combinacion, 2);
-                combinacion = suma1derecha.Substring(1, 1) + suma1derecha.Substring(2, 1);
-                col2 = Convert.ToInt32(combinacion, 2);
-
-                Scombinada = So[fila, col] + S1[fila1, col2];
-
-                string mensajeP42 = P4(P4Q, Scombinada);
-
-                // SUMA1 
-                suma1 = Suma(izquierda, mensajeP42);
-
-                //PERMUTACION IP-1
-                string mensajepi = IP1(IP1Q, suma1 + derecha);
-
-                int mensajefinal = Convert.ToInt32(mensajepi, 2);
-                Mensajecifrado.Add((byte)mensajefinal);
             }
-
-
-            return Mensajecifrado;
+            string mensajito = BitConverter.ToString(Mensajecifrado.ToArray());
+            return mensajito;
         }
-        public List<byte> Decypher(string llave, byte[] mensaje, int[] P4Q, int[] EPQ, int[] IPQ, int[] IP1Q, int[] P10, int[] P8)
+        static byte[] GetBytes(string str)
+        {
+            byte[] bytes = new byte[str.Length * sizeof(char)];
+            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+
+        static string GetString(byte[] bytes)
+        {
+            char[] chars = new char[bytes.Length / sizeof(char)];
+            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
+            return new string(chars);
+        }
+        public List<byte> Decypher(string llave, byte[] mensaje)
         {
             string[,] So = { { "01","00","11","10"},
                              { "11","10","01","00"},
@@ -307,6 +336,13 @@ namespace LibreriaRD
                              { "10","00","01","11"},
                              { "11","00","01","00"},
                              { "10","01","00","11"} };
+            int[] P4Q = new int[] { 2, 4, 3, 1 };
+            int[] EPQ = new int[] { 4, 1, 2, 3, 2, 3, 4, 1 };
+            int[] IPQ = new int[] { 2, 6, 3, 1, 4, 8, 5, 7 };
+            int[] IP1Q = new int[] { 4, 1, 3, 5, 7, 2, 8, 6 };
+            int[] P10 = new int[] { 3, 5, 2, 7, 4, 10, 1, 9, 8, 6 };
+            int[] P8 = new int[] { 6, 3, 7, 4, 8, 5, 10, 9 };
+
 
             List<byte> Mensajecifrado = new List<byte>();
 
