@@ -535,7 +535,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             {
                 if (chat.id.ToString() == roomId)
                 {
-
+                   //aqui
                     chatRoom = chat;
                     //aqui se descifran los mensajes
                     if (chatRoom.GroupName == null)
