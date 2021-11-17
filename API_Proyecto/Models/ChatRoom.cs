@@ -19,5 +19,6 @@ namespace API_Proyecto.Models
 
         public List<Messages> messagesList { get; set;  }
 
+        public List<string> keys { get; set; }
     }
 }

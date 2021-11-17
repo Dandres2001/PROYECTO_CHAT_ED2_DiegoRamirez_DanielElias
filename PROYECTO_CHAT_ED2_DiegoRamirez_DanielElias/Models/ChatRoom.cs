@@ -18,5 +18,6 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Models
 
         public List<Messages> messagesList { get; set; }
 
+        public List<string> keys { get; set; }
     }
 }
