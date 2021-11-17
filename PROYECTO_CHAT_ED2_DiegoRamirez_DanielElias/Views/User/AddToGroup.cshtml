@@ -1,26 +1,22 @@
 ﻿@model IEnumerable<PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Models.Users>
 
 @{
-    ViewData["Title"] = "AddFriend";
+    Layout = "PrivateLayout";
+
+}
+@{
+    ViewData["Title"] = "AddToGroup";
 }
 
-<h1>Buscar Usuario</h1>
+<h1>Agregar contacto a grupo</h1>
 
-<form method="get" asp-action="AddFriend">
-    <p>
-        <input type="search" placeholder="Type username..." value="@ViewData["GetUser"]" name="searched" style="width:500px;" />
-        <input type="submit" value="Search" class="btn btn-outline-primary" />
-        <a asp-action="AddFriend">Show All</a>
-    </p>
 
-</form>
-<table class="table-light">
+<table class="table">
     <thead>
         <tr>
             <th>
                 @Html.DisplayNameFor(model => model.Username)
             </th>
-
             <th>
                 @Html.DisplayNameFor(model => model.eMail)
             </th>
@@ -33,14 +29,18 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Username)
             </td>
-
             <td>
                 @Html.DisplayFor(modelItem => item.eMail)
             </td>
             <td>
-                @Html.ActionLink("Send Request", "SendRequest", new { user = item.Username })                
+                @Html.ActionLink("Agregar a grupo", "AddToGroupMethod", new {GroupId= ViewData["GroupId"], added = item.Username }) 
+     
             </td>
         </tr>
 }
     </tbody>
 </table>
+
+<div>
+    <a asp-action="Chat">Volver a chats</a>
+</div>

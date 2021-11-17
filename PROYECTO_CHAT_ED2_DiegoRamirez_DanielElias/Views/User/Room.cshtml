@@ -332,6 +332,17 @@
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <div>
     <a asp-action="Chat">Ir a chats</a>
+    <div style="float:right">
+        @{
+            if (Model.GroupName != null)
+            {
+                <div>
+                    <a style="float:right" asp-action="AddToGroup" asp-route-groupId="@Model.id">Agregar contacto al grupo</a>
+                </div>
+            }
+
+        }
+    </div>
 </div>
 <div class="col-xl-8 col-xl-8 chat">
     <div class="card">
@@ -340,6 +351,8 @@
                 <div class="user_info">
                     <span>Chat con: <span> @ViewData["ChatWith"]</span></span>
                 </div>
+
+   
             </div>
         </div>
         <div class="card-body msg_card_body">

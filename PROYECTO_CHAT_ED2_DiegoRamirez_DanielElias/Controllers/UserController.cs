@@ -328,9 +328,151 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
             return RedirectToAction(nameof(ViewRequests));
         }
-        #endregion 
+        #endregion
 
-          public async Task<IActionResult> Chat()
+        // GET: UserController/Create
+        public ActionResult CreateGroup()
+        {
+
+            return View();
+          
+        }
+
+        // POST: UserController/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateGroup(IFormCollection collection)
+        {
+            try
+            {
+                ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+                var currentUser = new Users();
+                HttpClient client = _api.Initial();
+                HttpResponseMessage res = await client.GetAsync("api/user/" + ViewBag.sessionv);
+                if (res.IsSuccessStatusCode)
+                {
+                    var results = res.Content.ReadAsStringAsync().Result;
+                    currentUser = System.Text.Json.JsonSerializer.Deserialize<Users>(results);
+                }
+                var newChatRoom = new ChatRoom();
+                newChatRoom.GroupName = collection["GroupName"];
+                newChatRoom.id = Guid.NewGuid().ToString();
+                newChatRoom.chatMembers = new List<string>();
+                newChatRoom.messagesList = new List<Messages>();
+                newChatRoom.chatMembers.Add(ViewBag.sessionv);
+                //registrando chatroom en user
+                currentUser.ChatRoomsIds.Add(newChatRoom.id, newChatRoom.GroupName);
+                //llamando a api
+                //actualizar current
+                client = _api.Initial();
+                var json = System.Text.Json.JsonSerializer.Serialize(currentUser);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await client.PutAsync("api/user/" + currentUser.Username, content);
+                //crear chat en db
+                json = System.Text.Json.JsonSerializer.Serialize(newChatRoom);
+                content = new StringContent(json, Encoding.UTF8, "application/json");
+                response = await client.PostAsync("api/user/chats", content);
+
+                return RedirectToAction(nameof(AddToGroup), new { groupId = newChatRoom.id });
+            }
+            catch
+            {
+                return View();
+            }
+        }
+
+        public async Task<IActionResult> AddToGroup(string groupId)
+        {
+            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+            var currentUser = new Users();
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/" + ViewBag.sessionv);
+            var results = res.Content.ReadAsStringAsync().Result;
+            currentUser = System.Text.Json.JsonSerializer.Deserialize<Users>(results);
+
+            res = await client.GetAsync("api/user");
+            var result = res.Content.ReadAsStringAsync().Result;
+            var allUsers = System.Text.Json.JsonSerializer.Deserialize<List<Users>>(result);
+            var contactsList = new List<Users>();
+
+            res = await client.GetAsync("api/user/allchats");
+            result = res.Content.ReadAsStringAsync().Result;
+            var allChats = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
+
+            var currentGroup = new ChatRoom();
+            foreach(ChatRoom chat in allChats)
+            {
+                if(chat.id == groupId)
+                {
+                    currentGroup = chat;
+                }
+            }
+            foreach (Users user in allUsers)
+            {
+                foreach(string uname in currentUser.friendsList)
+                {
+                    if(user.Username == uname && !currentGroup.chatMembers.Contains(user.Username))
+                    {
+                        contactsList.Add(user);
+                    }
+                }
+            }
+            ViewData["GroupId"] = groupId;
+
+            return View(contactsList);
+
+        }
+
+     
+        public async Task<IActionResult> AddToGroupMethod(string GroupId, string added)
+        {
+            try
+            {
+                ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+
+                
+                HttpClient client = _api.Initial();
+                HttpResponseMessage res = await client.GetAsync("api/user/" + added);
+                var results = res.Content.ReadAsStringAsync().Result;
+                var AddedUser = System.Text.Json.JsonSerializer.Deserialize<Users>(results);
+
+                res = await client.GetAsync("api/user/allchats");
+                var result = res.Content.ReadAsStringAsync().Result;
+                var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
+                var chatRoom = new ChatRoom();
+
+                foreach (ChatRoom chat in allChatRooms)
+                {
+                    if (chat.id.ToString() == GroupId)
+                    {
+                        chatRoom = chat;
+                    }
+                }
+
+                chatRoom.chatMembers.Add(added);
+
+                AddedUser.ChatRoomsIds.Add(GroupId, chatRoom.GroupName);
+
+                //ACTUALIZAR USER AGREGADO A GRUPO
+
+                var json = System.Text.Json.JsonSerializer.Serialize(AddedUser);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await client.PutAsync("api/user/" + AddedUser.Username, content);
+                //ACTUALIZAR CHAT ROOM
+                json = System.Text.Json.JsonSerializer.Serialize(chatRoom);
+                content = new StringContent(json, Encoding.UTF8, "application/json");
+                response = await client.PutAsync("api/user/chats/" + chatRoom.id, content);
+
+                return RedirectToAction(nameof(AddToGroup), new { groupId = GroupId});
+            }
+            catch
+            {
+                return View();
+            }
+        }
+
+
+        public async Task<IActionResult> Chat()
         {
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
             var currentUser = new Users();
