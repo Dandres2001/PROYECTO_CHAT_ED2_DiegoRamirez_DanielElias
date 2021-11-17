@@ -8,14 +8,28 @@ namespace LibreriaRD
 {
    public class RSA
     {
-        public string public_key;
-        public string private_key;
-        public void GenerarLlaves(int p, int q)
+       
+        public  List<string> GenerarLlaves()
         {
+            Random rand = new Random();
+            int p = 0;
+            int q = 0;
+            bool stop = false;
+            while (stop == false)
+            {
+                p = rand.Next(280, 700);
+                q = rand.Next(280, 700);
+                if (EsPrimo(p) == true && EsPrimo(q) ==true)
+                {
+                    stop = true;
+                }
 
+
+            }
             int n = p * q;
             int Fi_n = (p - 1) * (q - 1);
             int i;
+            List<string> llaves = new List<string>();
             for (i = 2; i < Fi_n; i++)
             {
                 if (coprime(Fi_n, i) == true && coprime(n, i) == true)
@@ -31,48 +45,64 @@ namespace LibreriaRD
                 e = e + n;
 
             }
-            public_key = Convert.ToString(e) + "," + Convert.ToString(n);
-            private_key = Convert.ToString(d) + "," + Convert.ToString(n);
+            llaves.Add(n.ToString());
+            llaves.Add(e.ToString());
+            llaves.Add(d.ToString());
+            return llaves;
+            //public_key = Convert.ToString(e) + "," + Convert.ToString(n);
+            //private_key = Convert.ToString(d) + "," + Convert.ToString(n);
 
         }
 
+        static byte[] GetBytes(string str)
+        {
+            byte[] bytes = new byte[str.Length * sizeof(char)];
+            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
 
+        static string GetString(byte[] bytes)
+        {
+            char[] chars = new char[bytes.Length / sizeof(char)];
+            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
+            return new string(chars);
+        }
 
-        public byte[] RSA_CYPHER(byte[] mensaje, int n, int k)
+        public string RSA_CYPHER(string mensaje, int n, int k)
         {
             var numeros = new List<int>();
-
-            foreach (int b in mensaje)
+            byte[] numerosmensaje = GetBytes(mensaje);
+            foreach (int b in numerosmensaje)
             {
 
-                int cifrado = (int)BigInteger.ModPow(b, n, k);
+                int cifrado = (int)BigInteger.ModPow(b, k, n);
                 numeros.Add(cifrado);
 
             }
             byte[] mensajefinal = numeros.SelectMany(BitConverter.GetBytes).ToArray();
-            byte[] identificar = { default };
-            return Combine(identificar, mensajefinal);
+            string charsfinales = GetString(mensajefinal);
+            return charsfinales;
 
         }
-        public byte[] RSA_DECYPHER(byte[] mensaje, int n, int k)
+        public string RSA_DECYPHER(string mensaje, int n, int k)
         {
 
-            mensaje = mensaje.Skip(1).ToArray();
+            byte[] numeros = GetBytes(mensaje);
 
-            var numerosmensaje = new int[mensaje.Length / 4];
-            Buffer.BlockCopy(mensaje, 0, numerosmensaje, 0, mensaje.Length);
+            var numerosmensaje = new int[numeros.Length / 4];
+            Buffer.BlockCopy(numeros, 0, numerosmensaje, 0, numeros.Length);
 
             List<byte> mensajedescifrado = new List<byte>();
 
             foreach (int b in numerosmensaje)
             {
 
-                int cifrado = (int)BigInteger.ModPow(b, n, k);
+                int cifrado = (int)BigInteger.ModPow(b, k, n);
 
                 mensajedescifrado.Add((byte)cifrado);
             }
-
-            return mensajedescifrado.ToArray();
+            string mensajefinal = GetString(mensajedescifrado.ToArray());
+            return mensajefinal;
         }
 
 

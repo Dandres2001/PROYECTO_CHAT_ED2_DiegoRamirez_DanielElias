@@ -353,6 +353,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             {
                 ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
                 var currentUser = new Users();
+                var RSALlaves = new RSA();
                 HttpClient client = _api.Initial();
                 HttpResponseMessage res = await client.GetAsync("api/user/" + ViewBag.sessionv);
                 if (res.IsSuccessStatusCode)
@@ -366,6 +367,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                 newChatRoom.chatMembers = new List<string>();
                 newChatRoom.messagesList = new List<Messages>();
                 newChatRoom.chatMembers.Add(ViewBag.sessionv);
+                newChatRoom.keys = (RSALlaves.GenerarLlaves());
                 //registrando chatroom en user
                 currentUser.ChatRoomsIds.Add(newChatRoom.id, newChatRoom.GroupName);
                 //llamando a api
@@ -513,6 +515,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             var decypherSDES = new SDES();
             var result = res.Content.ReadAsStringAsync().Result;
             var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
+            var decypherRSA = new RSA();
             var chatRoom = new ChatRoom();
             List<string> mensajesdescifrados = new List<string>();
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
@@ -530,21 +533,38 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             ViewData["ChatWith"] = id;
             foreach (ChatRoom chat in allChatRooms)
             {
+
                 if(chat.id.ToString() == roomId)
                 {
                     
                     chatRoom = chat;
                     //aqui se descifran los mensajes
-                    foreach (Messages s in chatRoom.messagesList) {
+                    if (chatRoom.GroupName == null)
+                    {
+                        foreach (Messages s in chatRoom.messagesList)
+                        {
 
 
-                        string descifrado = decypherSDES.Decypher(keys.getprivatekey(chatRoom.keys), s.Text);
-                        s.Text = descifrado;
-                       
-                    
-                    
+                            string descifrado = decypherSDES.Decypher(keys.getprivatekey(chatRoom.keys), s.Text);
+                            s.Text = descifrado;
+
+
+
+                        }
                     }
-                   
+                    else
+                    {
+                        foreach (Messages s in chatRoom.messagesList)
+                        {
+
+
+                            string descifrado = decypherRSA.RSA_DECYPHER( s.Text, Convert.ToInt32(chatRoom.keys[0]), Convert.ToInt32(chatRoom.keys[2]));
+                            s.Text = descifrado;
+
+
+
+                        }
+                    }
                 }
             } 
             return View(chatRoom);
@@ -561,6 +581,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
             var chatRoom = new ChatRoom();
             var cifradoSDES = new SDES();
+            var cifradoRSA = new RSA();
             var key = new Diffie_Hellman();
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
             foreach (ChatRoom chat in allChatRooms)
@@ -577,11 +598,16 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             
             newMessage.SenderUsername = ViewBag.sessionv;
 
-            //newMessage.Text = textMessage;
+
             //aqui
-
-            newMessage.Text = cifradoSDES.Cypher(key.getprivatekey(chatRoom.keys), textMessage);
-
+            if (chatRoom.GroupName ==null)
+            {
+                newMessage.Text = cifradoSDES.Cypher(key.getprivatekey(chatRoom.keys), textMessage);
+            }
+            else
+            {
+                newMessage.Text = cifradoRSA.RSA_CYPHER(textMessage, Convert.ToInt32(chatRoom.keys[0]), Convert.ToInt32(chatRoom.keys[1]));
+            }
             
             newMessage.date = DateTime.Now.ToString();
 
