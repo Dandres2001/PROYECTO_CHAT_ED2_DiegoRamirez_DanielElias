@@ -92,7 +92,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
 
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Login));
             }
             catch
             {
@@ -153,6 +153,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
         public async Task<IActionResult> AddFriend(string searched)
         {
 
+            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
             List<Users> users = new List<Users>();
             HttpClient client = _api.Initial();
             HttpResponseMessage res = await client.GetAsync("api/user");
@@ -205,7 +206,17 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
                 }
             }
-     
+            foreach (string u in receiver.friendsList)
+            {
+                if (u == sender.Username)
+                {
+                    ShowDialog("Esta persona ya está entre tus contactos");
+                    return RedirectToAction(nameof(Chat));
+
+
+                }
+            }
+
             receiver.requestsList.Add(sender.Username);
             string json = System.Text.Json.JsonSerializer.Serialize(receiver);
             var content = new StringContent(json, Encoding.UTF8, "application/json");

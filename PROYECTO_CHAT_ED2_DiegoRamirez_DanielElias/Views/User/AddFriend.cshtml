@@ -6,6 +6,10 @@
 
 <h1>Buscar Usuario</h1>
 
+<div>
+    <a asp-action="Chat">Volver a chat</a>
+</div>
+
 <form method="get" asp-action="AddFriend">
     <p>
         <input type="search" placeholder="Type username..." value="@ViewData["GetUser"]" name="searched" style="width:500px;" />
@@ -28,19 +32,25 @@
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Username)
-            </td>
+        @foreach (var item in Model)
+        {
 
-            <td>
-                @Html.DisplayFor(modelItem => item.eMail)
-            </td>
-            <td>
-                @Html.ActionLink("Send Request", "SendRequest", new { user = item.Username })                
-            </td>
-        </tr>
-}
+            @if (item.Username != ViewBag.sessionv)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Username)
+                    </td>
+
+                    <td>
+                        @Html.DisplayFor(modelItem => item.eMail)
+                    </td>
+                    <td>
+                        @Html.ActionLink("Send Request", "SendRequest", new { user = item.Username })
+                    </td>
+                </tr>
+            }
+
+        }
     </tbody>
 </table>

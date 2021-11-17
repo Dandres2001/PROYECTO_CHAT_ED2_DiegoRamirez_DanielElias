@@ -1,12 +1,19 @@
 ﻿@model List<string>
 
 @{
+    Layout = "PrivateLayout";
+}
+
+@{
     ViewData["Title"] = "ViewRequests";
 }
 
 <h1></h1>Ver Solicitudes
 
+<span class="form-group">
+    <input type="submit" value="Volver a chats" onclick="location.href='@Url.Action("Chat", "User")'" class="btn btn-outline-primary" />
 
+</span>
 <table class="table">
     <thead>
         <tr>
