@@ -508,12 +508,12 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
         public async Task<IActionResult> Room(string id)
         {
-         
-            HttpClient client = _api.Initial();
-            HttpResponseMessage res = await client.GetAsync("api/user/allchats");
-           
+
             var decypherSDES = new SDES();
             var decypherRSA = new RSA();
+
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/allchats");
             var result = res.Content.ReadAsStringAsync().Result;
             var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
             var chatRoom = new ChatRoom();
@@ -565,8 +565,8 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
         }
         
-        [HttpPost]
-        public async Task<IActionResult> Room(string textMessage, string roomId)
+     
+        public async Task<IActionResult> SendMessage(string textMessage, string roomId)
         {
             HttpClient client = _api.Initial();
             HttpResponseMessage res = await client.GetAsync("api/user/allchats");

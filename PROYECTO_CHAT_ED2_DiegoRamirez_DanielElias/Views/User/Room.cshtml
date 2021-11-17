@@ -416,7 +416,7 @@
                     $("button").click(function () {
                         $.ajax({
                             type: "POST",
-                            url: "@Url.Action("Room", "User")",
+                            url: "@Url.Action("SendMessage", "User")",
                             data: { textMessage: $('#textMessage').val(), roomId: $(this).val()}
                         })
                     })
