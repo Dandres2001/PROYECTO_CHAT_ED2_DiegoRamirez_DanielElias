@@ -533,30 +533,36 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             ViewData["ChatWith"] = id;
             foreach (ChatRoom chat in allChatRooms)
             {
-                if (chatRoom.GroupName == null)
+                if (chat.id.ToString() == roomId)
                 {
-                    foreach (Messages s in chatRoom.messagesList)
+
+                    chatRoom = chat;
+                    //aqui se descifran los mensajes
+                    if (chatRoom.GroupName == null)
                     {
+                        foreach (Messages s in chatRoom.messagesList)
+                        {
 
 
-                        string descifrado = decypherSDES.Decypher(keys.getprivatekey(chatRoom.keys), s.Text);
-                        s.Text = descifrado;
+                            string descifrado = decypherSDES.Decypher(keys.getprivatekey(chatRoom.keys), s.Text);
+                            s.Text = descifrado;
 
 
 
+                        }
                     }
-                }
-                else
-                {
-                    foreach (Messages s in chatRoom.messagesList)
+                    else
                     {
+                        foreach (Messages s in chatRoom.messagesList)
+                        {
 
 
-                        string descifrado = decypherRSA.RSA_DECYPHER(s.Text, Convert.ToInt32(chatRoom.keys[0]), Convert.ToInt32(chatRoom.keys[2]));
-                        s.Text = descifrado;
+                            string descifrado = decypherRSA.RSA_DECYPHER(s.Text, Convert.ToInt32(chatRoom.keys[0]), Convert.ToInt32(chatRoom.keys[2]));
+                            s.Text = descifrado;
 
 
 
+                        }
                     }
                 }
             } 
