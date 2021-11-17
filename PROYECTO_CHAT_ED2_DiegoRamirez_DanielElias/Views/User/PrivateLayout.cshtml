@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] SISTEMA DE CHAT</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body>
@@ -24,12 +24,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="ViewRequests">Ver Solicitudes</a>
                         </li>
-
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="ViewRequests">Ver Contactos</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="CreateGroup">Crear Grupo</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="ViewRequests">Cerrar Sesión</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Chat">Ver Contactos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="User" asp-action="Login">Cerrar Sesión</a>
                         </li>
                     </ul>
                 </div>

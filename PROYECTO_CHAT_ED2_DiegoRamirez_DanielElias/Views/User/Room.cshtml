@@ -14,8 +14,10 @@
     }
 
     .card {
+        position: relative;
         height: 500px;
-        border-radius: 15px !important;
+        width: 1000px;
+        border-radius: 12px !important;
         background-color: rgba(0,0,0,0.4) !important;
     }
 
@@ -35,6 +37,7 @@
     }
 
     .card-footer {
+        position: relative;
         border-radius: 0 0 15px 15px !important;
         border-top: 0 !important;
     }
@@ -177,8 +180,9 @@
         margin-top: auto;
         margin-bottom: auto;
         margin-left: 10px;
-        border-radius: 25px;
-        background-color: #82ccdd;
+        border-radius: 15px;
+        background-color: #4682B4;
+        border-bottom-right-radius: 0px;
         padding: 10px;
         position: relative;
     }
@@ -187,8 +191,9 @@
         margin-top: auto;
         margin-bottom: auto;
         margin-right: 10px;
-        border-radius: 25px;
-        background-color: #78e08f;
+        border-radius: 15px;
+        
+        background-color: #708090;
         padding: 10px;
         position: relative;
     }
@@ -270,11 +275,75 @@
     ul {
         list-style-type: none;
     }
+
+    .dropbtn {
+        background-color: #808080;
+        
+        color: white;
+        padding: 8px;
+        font-size: 8px;
+        border: none;
+    }
+
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #808080;
+        min-width: 160px;
+        box-shadow: 0px 8px 8px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+    }
+
+        .dropdown-content a {
+            color: black;
+            padding: 6px 6px;
+            text-decoration: none;
+            display: block;
+        }
+            .dropdown-content a:hover {
+                background-color: #ddd;
+            }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .dropbtn {
+        background-color: #3e8e41;
+    }
+
+    .datestring {
+
+        float:right;
+        align-content: center;
+        font-size:10px;
+        color: white;
+       
+    }
 </style>
 
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<div>
+    <a asp-action="Chat">Ir a chats</a>
+    <div style="float:right">
+        @{
+            if (Model.GroupName != null)
+            {
+                <div>
+                    <a style="float:right" asp-action="AddToGroup" asp-route-groupId="@Model.id">Agregar contacto al grupo</a>
+                </div>
+            }
+
+        }
+    </div>
+</div>
 <div class="col-xl-8 col-xl-8 chat">
     <div class="card">
         <div class="card-header msg_head">
@@ -282,20 +351,58 @@
                 <div class="user_info">
                     <span>Chat con: <span> @ViewData["ChatWith"]</span></span>
                 </div>
+
+   
             </div>
         </div>
         <div class="card-body msg_card_body">
-            <ul>
 
 
-                @foreach (var message in Model.messagesList)
+
+            @foreach (var message in Model.messagesList)
+            {
+                @if (message.Readers.Contains(ViewBag.sessionv))
                 {
-                    <li> @Html.DisplayFor(modelItem => message.Text)</li>
+                    @if (message.SenderUsername == ViewBag.sessionv)
+                    {
+                        <ul class="msg_cotainer">
+
+                            <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
+                            <div style="float:right" class="dropdown">
+                                <button onclick="" style="float: right;" class="dropbtn">...</button>
+                                <div class="dropdown-content">
+                                    <a value="@Model.id" href="@Url.ActionLink("DeleteForMe", "User", new { msgId = message.id, roomId = Model.id})">Eliminar para mi</a>
+                                    <a value="@Model.id" href="@Url.ActionLink("DeleteForAll", "User", new { msgId = message.id, roomId = Model.id})">Eliminar para todos</a>
+                                </div>
+                            </div>
+                            <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
+
+                        </ul>
+                        <ul class="container">
+                        </ul>
+                    }
+                    else
+                    {
+                        <ul class="msg_cotainer_send">
+                            <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
+                            <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
+
+
+
+                        </ul>
+                        <ul class="container">
+                        </ul>
+                    }
                 }
+            }
+
+            
 
 
 
-            </ul>
+
+
+
 
         </div>
         <div class="card-footer">
@@ -312,7 +419,7 @@
                     $("button").click(function () {
                         $.ajax({
                             type: "POST",
-                            url: "@Url.Action("SendMessage")",
+                            url: "@Url.Action("SendMessage", "User")",
                             data: { textMessage: $('#textMessage').val(), roomId: $(this).val()}
                         })
                     })

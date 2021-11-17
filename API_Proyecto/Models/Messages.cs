@@ -7,10 +7,13 @@ namespace API_Proyecto.Models
 {
     public class Messages
     {
+        public string id { get; set; }
         public string Text { get; set; }
 
         public string SenderUsername { get; set; }
 
         public List<string> Readers { get; set; }
+
+        public string date { get; set; }
     }
 }
