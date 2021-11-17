@@ -192,7 +192,6 @@
         margin-bottom: auto;
         margin-right: 10px;
         border-radius: 15px;
-        
         background-color: #708090;
         padding: 10px;
         position: relative;
@@ -278,7 +277,6 @@
 
     .dropbtn {
         background-color: #808080;
-        
         color: white;
         padding: 8px;
         font-size: 8px;
@@ -305,6 +303,7 @@
             text-decoration: none;
             display: block;
         }
+
             .dropdown-content a:hover {
                 background-color: #ddd;
             }
@@ -318,12 +317,10 @@
     }
 
     .datestring {
-
-        float:right;
+        float: right;
         align-content: center;
-        font-size:10px;
+        font-size: 10px;
         color: white;
-       
     }
 </style>
 
@@ -352,7 +349,7 @@
                     <span>Chat con: <span> @ViewData["ChatWith"]</span></span>
                 </div>
 
-   
+
             </div>
         </div>
         <div class="card-body msg_card_body">
@@ -396,7 +393,7 @@
                 }
             }
 
-            
+
 
 
 
@@ -419,13 +416,22 @@
                     $("button").click(function () {
                         $.ajax({
                             type: "POST",
-                            url: "@Url.Action("SendMessage", "User")",
+                            url: "@Url.Action("Room", "User")",
                             data: { textMessage: $('#textMessage').val(), roomId: $(this).val()}
                         })
                     })
+                </script>
+
+                <button class="btn-dark" name="actualizar">Actualizar</button>
+                <script>
+                    $("actualizar").click(function () {
+                        location.href = location.href;
+                    }
                 </script>
             </div>
         </div>
     </div>
     <div></div>
 </div>
+<script src="~/Scripts/jquery.validate.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.js"></script>

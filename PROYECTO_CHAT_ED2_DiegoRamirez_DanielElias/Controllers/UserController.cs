@@ -552,8 +552,8 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
         }
         
-
-        public async Task<IActionResult> SendMessageAsync(string textMessage, string roomId)
+        [HttpPost]
+        public async Task<IActionResult> Room(string textMessage, string roomId)
         {
             HttpClient client = _api.Initial();
             HttpResponseMessage res = await client.GetAsync("api/user/allchats");
@@ -602,9 +602,13 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             {
                 reciever = chatRoom.GroupName;
             }
-            return  RedirectToAction(nameof(Room), new { id = reciever});
+            return  RedirectToAction(nameof(redirectHelper), new { id = reciever});
+    
         }
-
+        public IActionResult redirectHelper(string id)
+        {
+            return RedirectToAction(nameof(Room), new { id = id });
+        }
         public async Task<IActionResult> DeleteForMe(string roomId, string msgId)
         {
             HttpClient client = _api.Initial();
