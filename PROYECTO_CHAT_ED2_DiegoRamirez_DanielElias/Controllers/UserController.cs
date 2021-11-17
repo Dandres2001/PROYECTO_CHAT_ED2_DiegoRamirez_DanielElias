@@ -60,7 +60,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                 Random rand = new Random();
                 var user = new Users();
                 {
-                   
+                    
                     user.Username = collection["Username"];
                     user.Password = collection["Password"];
                     user.key = rand.Next(1, 500).ToString();
@@ -582,7 +582,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
             newMessage.Text = cifradoSDES.Cypher(key.getprivatekey(chatRoom.keys), textMessage);
 
-            newMessage.Text = textMessage;
+            
             newMessage.date = DateTime.Now.ToString();
 
             //aqui se deberia mandar a cifrar
