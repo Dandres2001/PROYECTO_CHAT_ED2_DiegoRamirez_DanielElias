@@ -14,6 +14,8 @@ using System.Text.Json;
 using Newtonsoft.Json;
 using System.Text.Json.Serialization;
 using LibreriaRD;
+using System.IO;
+
 namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 {
     public class UserController : Controller
@@ -632,7 +634,8 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
             //ACCIONES PARA RETORNAR A LA VISTA DEL CHAT
             string reciever;
-            if(chatRoom.chatMembers.Count == 2)
+            //verificar
+            if(chatRoom.chatMembers.Count == 2 && chatRoom.GroupName ==null)
             {
                 reciever = chatRoom.chatMembers.Find(x => x != ViewBag.sessionv);
             }
@@ -653,7 +656,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<ActionResult> UploadFile(string roomId, string sender, IFormFile File)
+        public async Task<IActionResult> UploadFile(string roomId, string sender, IFormFile File)
         {
             ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
             HttpClient client = _api.Initial();
@@ -661,6 +664,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             var result = res.Content.ReadAsStringAsync().Result;
             var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
             var chatRoom = new ChatRoom();
+            var LZWcompresor = new LZW();
 
             foreach(ChatRoom chat in allChatRooms)
             {
@@ -675,6 +679,22 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             newMsg.id = Guid.NewGuid().ToString();
             newMsg.SenderUsername = sender;
             newMsg.isFile = true;
+            newMsg.FileName = File.FileName;
+            newMsg.ContentType = File.ContentType;
+            byte[] bytes;
+            using (var target = new MemoryStream())
+            {
+                File.CopyTo(target);
+                bytes = target.ToArray();
+            }
+            newMsg.File = LZWcompresor.Compress(bytes);
+            chatRoom.messagesList.Add(newMsg);
+
+            var json = System.Text.Json.JsonSerializer.Serialize(chatRoom);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await client.PutAsync("api/user/chats/" +chatRoom.id, content);
+
             return View();
         }
         public async Task<IActionResult> DeleteForMe(string roomId, string msgId)

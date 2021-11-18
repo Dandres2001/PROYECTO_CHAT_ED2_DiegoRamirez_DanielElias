@@ -83,6 +83,13 @@ namespace API_Proyecto.Controllers
             return BadRequest();
         }
 
+        [HttpPost("file/upload")]
+        public async Task<IActionResult> onpostDonwload(JsonElement jsonfile)
+        {
+            var currentfile = new Messages();
+            return null;
+        }
+
         //PUT api/<UserController>/5
         [HttpPut("{username}")]
         public async Task<IActionResult> Put(string username,JsonElement jsonUser)
