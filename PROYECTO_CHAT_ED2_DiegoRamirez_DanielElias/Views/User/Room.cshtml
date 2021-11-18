@@ -492,9 +492,11 @@
 
             <div class="card-footer">
                 <div class="input-group">
-                    <div class="input-group-append">
-                        <span class="input-group-text attach_btn"><i class="fas fa-paperclip"></i></span>
+                    <div class="form-group">
+                        <input type="submit" value="File" onclick="location.href='@Url.Action("UploadFile", "User", new { roomId = Model.id, sender = ViewBag.sessionv})'" class="btn-outline-dark" />
+
                     </div>
+         
                     <div>@Html.TextBox("textMessage")</div>
 
                     <button value="@Model.id">

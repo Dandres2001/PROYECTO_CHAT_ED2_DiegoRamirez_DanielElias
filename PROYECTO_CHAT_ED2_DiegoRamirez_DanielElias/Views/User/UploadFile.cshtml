@@ -1,0 +1,28 @@
+﻿@model PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Models.Messages
+
+<h1>Subir archivo para enviar</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <form method="post" enctype="multipart/form-data">
+            <div class=" form-group">
+               <div class="col-md-10">
+                   <p>Subir Archivo</p>
+
+                   <input asp-for="File" class="form-control" type="file" />
+                    
+               </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-10">
+                    <input class="btn btn-success" onclick="location.href='@Url.Action("UploadFile", "User", new {roomId = ViewData["roomId"], sender = ViewData["sender"] })'" type="submit" value="Subir" />
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Chat">Volver al chat</a>
+</div>

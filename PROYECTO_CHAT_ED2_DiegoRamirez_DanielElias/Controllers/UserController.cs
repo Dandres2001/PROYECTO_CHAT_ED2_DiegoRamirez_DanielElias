@@ -640,12 +640,42 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             {
                 reciever = chatRoom.GroupName;
             }
-            return  RedirectToAction(nameof(redirectHelper), new { id = reciever});
+            return  RedirectToAction(nameof(Room), new { id = reciever});
     
         }
-        public IActionResult redirectHelper(string id)
+
+        [HttpGet]
+        public ActionResult UploadFile(string roomId, string sender)
         {
-            return RedirectToAction(nameof(Room), new { id = id });
+            ViewData["roomId"] = roomId;
+            ViewData["sender"] = sender;
+
+            return View();
+        }
+        [HttpPost]
+        public async Task<ActionResult> UploadFile(string roomId, string sender, IFormFile File)
+        {
+            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/allchats");
+            var result = res.Content.ReadAsStringAsync().Result;
+            var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
+            var chatRoom = new ChatRoom();
+
+            foreach(ChatRoom chat in allChatRooms)
+            {
+                if(chat.id == roomId)
+                {
+                    chatRoom = chat;
+                    break;
+                }
+            }
+            //aqui hay que crear el mensaje y ver como comprimirlo y guardarlo en mongo 
+            var newMsg = new Messages();
+            newMsg.id = Guid.NewGuid().ToString();
+            newMsg.SenderUsername = sender;
+            newMsg.isFile = true;
+            return View();
         }
         public async Task<IActionResult> DeleteForMe(string roomId, string msgId)
         {
