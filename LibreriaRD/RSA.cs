@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace LibreriaRD
 {
-   public class RSA
+   public class RSA 
     {
         public List<string> GenerarLlaves()
         {

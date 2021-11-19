@@ -4,7 +4,7 @@ using System.Text;
 using System.Linq;
 namespace LibreriaRD
 {
-   public class LZW
+   public class LZW : Icompresor
     {
         public static byte[] ConvertToByte(int binary)
         {
