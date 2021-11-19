@@ -15,7 +15,7 @@
     }
 
     .card {
-        height: 500px;
+        height: auto;
         border-radius: 15px !important;
         background-color: rgba(0,0,0,0.4) !important;
     }
@@ -273,21 +273,21 @@
     }
 </style>
 <script src="@url"></script>
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<h1>Tus Contactos</h1>
 <!------ Include the above in your HEAD tag ---------->
 <div class="container-fluid h-100">
     <div class="row justify-content-center h-100">
         <div class="col-xl-4 col-xl-3 chat">
             <div class="card mb-sm-3 mb-md-0 contacts_card">
                 <div class="card-header">
-                    <div class="input-group">
-                        <input type="text" placeholder="Search..." name="" class="form-control search">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text search_btn"><i class="fas fa-search"></i></span>
-                        </div>
-                    </div>
+                    @*<form asp-action="Chat" asp-route-searched="@ViewData["GetMessage"]]" asp-route-roomId="@ViewData["roomId"]">
+                      <p>
+                <input type="search" id="searched" placeholder="Escribe el mensaje a buscar..." value="@ViewData["GetMessage"]" name="searched" style="width:500px;" />
+
+
+            </p>
+
+        </form>*@
                 </div>
 
 

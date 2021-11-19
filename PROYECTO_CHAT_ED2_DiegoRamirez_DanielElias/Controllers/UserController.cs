@@ -586,8 +586,87 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             
 
         }
+
+        public async Task<ActionResult> SearchMessage(string roomId, string searched)
+        {
+            var decypherSDES = new SDES();
+            var decypherRSA = new RSA();
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/allchats");
+            var result = res.Content.ReadAsStringAsync().Result;
+            var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
+            var chatRoom = new ChatRoom();
+            List<string> mensajesdescifrados = new List<string>();
+            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+            var currentUser = new Users();
+            var keys = new Diffie_Hellman();
+            ViewData["roomId"] = roomId;
+            foreach (ChatRoom chat in allChatRooms)
+            {
+                if (chat.id.ToString() == roomId)
+                {
+                    //aqui
+                    chatRoom = chat;
+                    //aqui se descifran los mensajes
+                    if (chatRoom.GroupName == null)
+                    {
+
+                        foreach (Messages s in chatRoom.messagesList)
+                        {
+                            if (s.isFile == false)
+                            {
+
+                                string descifrado = decypherSDES.Decypher(keys.getprivatekey(chatRoom.keys), s.Text);
+                                s.Text = descifrado;
+
+                            }
+
+
+                        }
+                    }
+                    else
+                    {
+                        foreach (Messages s in chatRoom.messagesList)
+                        {
+
+                            if (s.isFile == false)
+                            {
+                                string descifrado = decypherRSA.RSA_DECYPHER(s.Text, Convert.ToInt32(chatRoom.keys[0]), Convert.ToInt32(chatRoom.keys[2]));
+                                s.Text = descifrado;
+                            }
+
+
+                        }
+                    }
+                }
+
+
+            }
+            string user;
+            if (chatRoom.chatMembers.Count == 2 && chatRoom.GroupName == null)
+            {
+                user = chatRoom.chatMembers.Find(x => x != ViewBag.sessionv);
+            }
+            else
+            {
+                user = chatRoom.GroupName;
+            }
+            ViewData["ChatWith"] = user;
         
-     
+            ViewData["GetMessage"] = searched;
+            var messageRequest = from x in chatRoom.messagesList select x;
+            if (!String.IsNullOrEmpty(searched))
+            {
+
+                //DELEGATES
+              
+                    messageRequest = messageRequest.Where(x => x.Text.Contains(searched));
+                
+           
+
+            }
+            return (View(messageRequest));
+        }
         public async Task<IActionResult> SendMessage(string textMessage, string roomId)
         {
             HttpClient client = _api.Initial();
@@ -689,6 +768,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             newMsg.isFile = true;
             newMsg.FileName = File.FileName;
             newMsg.ContentType = File.ContentType;
+            newMsg.Text = "file";
             byte[] bytes;
             using (var target = new MemoryStream())
             {
@@ -703,7 +783,9 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
             var response = await client.PutAsync("api/user/chats/" +chatRoom.id, content);
 
-            return View();
+            ShowDialog("Archivo enviado");
+              
+            return RedirectToAction(nameof(Download), new { roomId = chatRoom.id });
         }
 
         [HttpGet]
@@ -725,6 +807,16 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                     break;
                 }
             }
+            string user;
+            if (chatRoom.chatMembers.Count == 2 && chatRoom.GroupName == null)
+            {
+                user = chatRoom.chatMembers.Find(x => x != ViewBag.sessionv);
+            }
+            else
+            {
+                user = chatRoom.GroupName;
+            }
+            ViewData["ChatWith"] = user;
             return View(chatRoom);
         }
 
@@ -742,14 +834,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             var largodiccionario = new List<Byte>();
             var chardiccionario = new List<Byte>();
             var mensajecomprimido = new List<Byte>();
-            //foreach (ChatRoom chat in allChatRooms)
-            //{
-            //    if (chat.id == roomId)
-            //    {
-            //        chatRoom = chat;
-            //        break;
-            //    }
-            //}
+
 
             foreach (ChatRoom chat in allChatRooms)
             {
@@ -852,7 +937,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             res = await client.PutAsync("api/user/chats/" + chatRoom.id, content);
             //ACCIONES PARA RETORNAR A LA VISTA DEL CHAT
             string reciever;
-            if (chatRoom.chatMembers.Count == 2)
+            if (chatRoom.chatMembers.Count == 2 && chatRoom.GroupName == null)
             {
                 reciever = chatRoom.chatMembers.Find(x => x != ViewBag.sessionv);
             }
@@ -893,7 +978,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             res = await client.PutAsync("api/user/chats/" + chatRoom.id, content);
             //ACCIONES PARA RETORNAR A LA VISTA DEL CHAT
             string reciever;
-            if (chatRoom.chatMembers.Count == 2)
+            if (chatRoom.chatMembers.Count == 2 && chatRoom.GroupName == null)
             {
                 reciever = chatRoom.chatMembers.Find(x => x != ViewBag.sessionv);
             }
@@ -907,26 +992,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
         }
 
 
-        // GET: UserController/Delete/5
-        public ActionResult Delete(int id) 
-        {
-            return View();
-        }
 
-        // POST: UserController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
 
         public void ShowDialog(string message)
         {

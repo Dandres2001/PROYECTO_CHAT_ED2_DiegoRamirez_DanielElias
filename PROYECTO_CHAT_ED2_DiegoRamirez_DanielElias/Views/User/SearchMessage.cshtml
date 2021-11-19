@@ -1,4 +1,5 @@
-﻿@model PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Models.ChatRoom
+﻿
+@model IEnumerable<PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Models.Messages>
 
 @{
     Layout = "PrivateLayout";
@@ -326,44 +327,18 @@
     }
 </style>
 
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <div>
 
     <span class="form-group">
         <input type="submit" value="Volver a chats" onclick="location.href='@Url.Action("Chat", "User")'" class="btn btn-outline-primary" />
 
     </span>
+    <span>
 
-    <span class="form-group">
-        @{
-            if (Model.GroupName != null)
-            {
-
-
-
-                <span>
-                    <input type="submit" value="Agregar a grupo" onclick="location.href='@Url.Action("AddToGroup", "User", new { groupId = Model.id})'" class="btn btn-outline-primary" />
-                    <input type="submit" value="Mensajes" onclick="location.href='@Url.Action("Room", "User", new { id = Model.GroupName})'" class="btn btn-outline-primary" />
-                </span>
-
-
-            }
-            else
-            {
-
-                foreach (string u in Model.chatMembers)
-                {
-                    if (u != ViewBag.sessionv)
-                    {
-                        string user = u;
-                    }
-                }
-                <span>
-                
-                <input type="submit" value="Mensajes" onclick="location.href='@Url.Action("Room", "User", new { id = @ViewData["ChatWith"]})'" class="btn btn-outline-primary" />
-            </span>
-            }
-
-        }
+        <input type="submit" value="Mensajes" onclick="location.href='@Url.Action("Room", "User", new { id = @ViewData["ChatWith"]})'" class="btn btn-outline-primary" />
     </span>
 </div>
 
@@ -371,88 +346,99 @@
 
 
 
-<div style="float:left" id="realTimeContents">
-    <div class="col-xl-8 col-xl-8 chat">
-        <div class="card">
-            <div class="card-header msg_head">
-                <div class="d-flex bd-highlight">
-                    <div class="user_info">
-                        <p style="color:white; font-size:20px" ;>Chat con:  @ViewData["ChatWith"]</p>
+    
+
+    <form asp-action="SearchMessage" asp-route-searched="@ViewData["GetMessage"]]" asp-route-roomId="@ViewData["roomId"]">
+        <p>
+            <input type="search" id="searched" placeholder="Escribe el mensaje a buscar..." value="@ViewData["GetMessage"]" name="searched" style="width:500px;" />
+            <input @*onclick="location.href='@Url.ActionLink("SearchMessage", "User", new { roomId = ViewData["roomId"] })'"*@ type="submit" value="Search" class="btn btn-outline-primary" />
+
+        </p>
+
+    </form>
+
+
+
+
+
+
+
+
+    <div style="float:left" id="realTimeContents">
+        <div class="col-xl-8 col-xl-8 chat">
+            <div class="card">
+                <div class="card-header msg_head">
+                    <div class="d-flex bd-highlight">
+
+
+
                     </div>
-
-
                 </div>
-            </div>
-            <div  class="card-body msg_card_body">
+                <div style="display: flex; flex-direction: column;" class="card-body msg_card_body">
 
 
 
-                @foreach (var message in Model.messagesList)
-                {
-                    @if (message.Readers.Contains(ViewBag.sessionv))
+                    @foreach (var message in Model)
                     {
-                        @if (message.SenderUsername == ViewBag.sessionv && message.isFile == true)
+                        @if (message.Readers.Contains(ViewBag.sessionv))
                         {
-                            <ul class="msg_cotainer">
-
-                                <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
-                                <div style="float:right" class="dropdown">
-                                    <button onclick="" style="float: right;" class="dropbtn">...</button>
-                                    <div class="dropdown-content">
-                                        <a value="@Model.id" href="@Url.Action("DownloadFile", "User", new {  roomId = Model.id, msgid = message.id})">Descagar</a>
-
-                                    </div>
-                                </div>
-                                <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.FileName)</p>
-
-                            </ul>
-                            <ul class="container">
-                            </ul>
-                        }
-                        else
-                        {
-                            if (message.isFile == true)
+                            @if (message.SenderUsername == ViewBag.sessionv && message.isFile == false)
                             {
-
-                                <ul class="msg_cotainer_send">
+                                <ul class="msg_cotainer">
 
                                     <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
                                     <div style="float:right" class="dropdown">
                                         <button onclick="" style="float: right;" class="dropbtn">...</button>
                                         <div class="dropdown-content">
-                                            <a value="@Model.id" href="@Url.Action("DownloadFile", "User", new {   roomId = Model.id, msgid = message.id})">Descagar</a>
-
+                                            <a value="@Model" href="@Url.ActionLink("DeleteForMe", "User", new { msgId = message.id, roomId = Model})">Eliminar para mi</a>
+                                            <a value="@Model" href="@Url.ActionLink("DeleteForAll", "User", new { msgId = message.id, roomId = Model})">Eliminar para todos</a>
                                         </div>
                                     </div>
-                                    <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.FileName)</p>
-
-
+                                    <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
 
                                 </ul>
                                 <ul class="container">
                                 </ul>
                             }
+                            else
+                            {
+                                if (message.isFile == false)
+                                {
+                                    <ul class="msg_cotainer_send">
+                                        <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
+                                        <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
+
+
+
+                                    </ul>
+                                    <ul class="container">
+                                    </ul>
+                                }
+                            }
                         }
                     }
-                }
 
-            </div>
+                </div>
 
-            <div class="card-footer">
+                <div class="card-footer">
+                    <div class="input-group">
 
 
-                    <button class="btn-dark" id="actualizar" name="actualizar">Actualizar</button>
-                    <script>
-                        const reload = document.getElementById('actualizar');
 
-                        reload.addEventListener('click', _ => { // el _ es para indicar la ausencia de parametros
-                            location.reload();
-                        });
-                    </script>
+
+                        <button class="btn-dark" id="actualizar" name="actualizar">Actualizar</button>
+                        <script>
+                            const reload = document.getElementById('actualizar');
+
+                            reload.addEventListener('click', _ => { // el _ es para indicar la ausencia de parametros
+                                location.reload();
+                            });
+                        </script>
+                    </div>
                 </div>
             </div>
+            <div></div>
         </div>
-        <div></div>
+        <script src="~/Scripts/jquery.validate.js"></script>
+        <script src="~/Scripts/jquery.validate.unobtrusive.js"></script>
     </div>
-
-</div>

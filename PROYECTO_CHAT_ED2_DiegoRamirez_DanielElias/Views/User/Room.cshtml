@@ -17,7 +17,6 @@
 
     .card {
         position: relative;
-
         height: 500px;
         width: 1100px;
         border-radius: 12px !important;
@@ -75,13 +74,13 @@
             outline: 0px !important;
         }
 
-    .attach_btn {
+/*    .attach_btn {
         border-radius: 15px 0 0 15px !important;
         background-color: rgba(0,0,0,0.3) !important;
         border: 0 !important;
         color: white !important;
         cursor: pointer;
-    }
+    }*/
 
     .send_btn {
         border-radius: 0 15px 15px 0 !important;
@@ -110,7 +109,7 @@
             margin-bottom: 15px !important;
         }
 
-    .active {
+/*    .active {
         background-color: rgba(0,0,0,0.3);
     }
 
@@ -147,7 +146,7 @@
         right: 0.4em;
         border: 1.5px solid white;
     }
-
+*/
     .offline {
         background-color: #c23616 !important;
     }
@@ -242,7 +241,7 @@
         display: none;
     }
 
-        .action_menu ul {
+/*        .action_menu ul {
             list-style: none;
             padding: 0;
             margin: 0;
@@ -261,7 +260,7 @@
                 .action_menu ul li:hover {
                     cursor: pointer;
                     background-color: rgba(0,0,0,0.2);
-                }
+                }*/
 
     .justify-content-end {
         background-color: #e09b1ecc;
@@ -328,18 +327,21 @@
     }
 </style>
 
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
 <div>
 
     <span class="form-group">
-        <input type="submit" value="Volver a chats" onclick="location.href='@Url.Action("Chat", "User")'" class="btn btn-outline-primary" />
+        <input type="submit" value="Volver a chats" onclick="location.href='@Url.Action("Chat", "User")'" class="btn btn-secondary" />
 
     </span>
 
     <span class="form-group">
-        <input type="submit" value="Archivos" onclick="location.href='@Url.Action("Download", "User", new { roomid=Model.id})'" class="btn btn-outline-primary" />
+        <input type="submit" value="Archivos" onclick="location.href='@Url.Action("Download", "User", new { roomid=Model.id})'" class="btn btn-secondary" />
+
+    </span>
+
+    <span class="form-group">
+        <input type="submit" value="Buscar mensaje" onclick="location.href='@Url.Action("SearchMessage", "User", new { roomId=Model.id})'" class="btn btn-secondary"/>
 
     </span>
     <span class="form-group">
@@ -348,99 +350,16 @@
             {
 
 
-                <input type="submit" value="Agregar a grupo" onclick="location.href='@Url.Action("AddToGroup", "User", new { groupId = Model.id})'" class="btn btn-outline-primary" />
+                <input type="submit" value="Agregar a grupo" onclick="location.href='@Url.Action("AddToGroup", "User", new { groupId = Model.id})'" class="btn btn-secondary" />
 
             }
 
         }
     </span>
-    <form style="float:right" id="form1" runat="server">
-        <p>Buscar mensaje</p>
-        <input type="text" id="SearchTxt" />
-        <input type="button" id="SearchBtn" value="Buscar" />
-        <input type="button" id="NextBtn" value="Siguiente" />
-        <input type="button" id="PreBtn" value="Anterior" />
-    </form>
+ 
 </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js" type="text/javascript"></script>
-<script type="text/javascript">
-    function searchAndHighlight(searchTerm, selector) {
-        if (searchTerm) {
-            var selector = selector || "#realTimeContents";
-            var searchTermRegEx = new RegExp(searchTerm, "ig");
-            var matches = $(selector).text().match(searchTermRegEx);
-            if (matches != null && matches.length > 0) {
-                $('.highlighted').removeClass('highlighted');
-                $span = $('#realTimeContents span');
-                $span.replaceWith($span.html());
-                if (searchTerm === "&") {
-                    searchTerm = "&amp;";
-                    searchTermRegEx = new RegExp(searchTerm, "ig");
-                }
-                $(selector).html($(selector).html().replace(searchTermRegEx, "<span class='match'>" + searchTerm + "</span>"));
-                $('.match:first').addClass('highlighted');
-                var i = 0;
-                $('#NextBtn').off('click').on('click', function () {
-                    i++;
-                    if (i >= $('.match').length) i = 0;
-                    $('.match').removeClass('highlighted');
-                    $('.match').eq(i).addClass('highlighted');
-                    $('.ui-mobile-viewport').animate({
-                        scrollTop: $('.match').eq(i).offset().top
-                    }, 300);
-                });
-                $('#PreBtn').off('click').on('click', function () {
-                    i--;
-                    if (i < 0) i = $('.match').length - 1;
-                    $('.match').removeClass('highlighted');
-                    $('.match').eq(i).addClass('highlighted');
-                    $('.ui-mobile-viewport').animate({
-                        scrollTop: $('.match').eq(i).offset().top
-                    }, 300);
-                });
-                if ($('.highlighted:first').length) { //if match found, scroll to where the first one appears
-                    $(window).scroll($('.highlighted:first').position().top);
-                }
-                return true;
-            }
-        }
-        return false;
-    }
-    $(document).on('click', '#SearchBtn', function (event) {
-        $(".highlighted").removeClass("highlighted").removeClass("match");
-        if (!searchAndHighlight($('#SearchTxt').val())) {
-            alert("No results found");
-        }
-    });
-</script>
-<style type="text/css">
-    .highlighted {
-        background-color: yellow;
-    }
-
-    .highlight {
-        background-color: #fff34d;
-        -moz-border-radius: 5px; /* FF1+ */
-        -webkit-border-radius: 5px; /* Saf3-4 */
-        border-radius: 5px; /* Opera 10.5, IE 9, Saf5, Chrome */
-        -moz-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7); /* FF3.5+ */
-        -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7); /* Saf3.0+, Chrome */
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7); /* Opera 10.5+, IE 9.0 */
-    }
-
-    .highlight {
-        padding: 1px 4px;
-        margin: 0 -4px;
-    }
-</style>
-
-
-
-
-
-
-<div style="float:left" id="realTimeContents">
+<div style="float:left">
     <div  class="col-xl-8 col-xl-8 chat">
         <div  class="card">
             <div class="card-header msg_head">
@@ -452,7 +371,7 @@
 
                 </div>
             </div>
-            <div style="display: flex; flex-direction: column;" class="card-body msg_card_body">
+            <div class="card-body msg_card_body">
 
 
 
@@ -468,8 +387,8 @@
                                 <div style="float:right" class="dropdown">
                                     <button onclick="" style="float: right;" class="dropbtn">...</button>
                                     <div class="dropdown-content">
-                                        <a value="@Model.id" href="@Url.ActionLink("DeleteForMe", "User", new { msgId = message.id, roomId = Model.id})">Eliminar para mi</a>
-                                        <a value="@Model.id" href="@Url.ActionLink("DeleteForAll", "User", new { msgId = message.id, roomId = Model.id})">Eliminar para todos</a>
+                                        <a value="@Model.id" href="@Url.Action("DeleteForMe", "User", new { msgId = message.id, roomId = Model.id})">Eliminar para mi</a>
+                                        <a value="@Model.id" href="@Url.Action("DeleteForAll", "User", new { msgId = message.id, roomId = Model.id})">Eliminar para todos</a>
                                     </div>
                                 </div>
                                 <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
@@ -533,6 +452,5 @@
         </div>
         <div></div>
     </div>
-    <script src="~/Scripts/jquery.validate.js"></script>
-    <script src="~/Scripts/jquery.validate.unobtrusive.js"></script>
+
 </div>
