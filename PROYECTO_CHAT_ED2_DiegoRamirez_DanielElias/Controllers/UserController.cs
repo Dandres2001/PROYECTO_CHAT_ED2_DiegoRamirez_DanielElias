@@ -555,11 +555,13 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                     {
                         foreach (Messages s in chatRoom.messagesList)
                         {
+                            if (s.isFile == false)
+                            {
 
+                                string descifrado = decypherSDES.Decypher(keys.getprivatekey(chatRoom.keys), s.Text);
+                                s.Text = descifrado;
 
-                            string descifrado = decypherSDES.Decypher(keys.getprivatekey(chatRoom.keys), s.Text);
-                            s.Text = descifrado;
-
+                            }
 
 
                         }
@@ -569,10 +571,11 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                         foreach (Messages s in chatRoom.messagesList)
                         {
 
-
-                            string descifrado = decypherRSA.RSA_DECYPHER(s.Text, Convert.ToInt32(chatRoom.keys[0]), Convert.ToInt32(chatRoom.keys[2]));
-                            s.Text = descifrado;
-
+                            if (s.isFile== false)
+                            {
+                                string descifrado = decypherRSA.RSA_DECYPHER(s.Text, Convert.ToInt32(chatRoom.keys[0]), Convert.ToInt32(chatRoom.keys[2]));
+                                s.Text = descifrado;
+                            }
 
 
                         }
@@ -655,6 +658,10 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
             return View();
         }
+
+        
+
+
         [HttpPost]
         public async Task<IActionResult> UploadFile(string roomId, string sender, IFormFile File)
         {
@@ -674,9 +681,10 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                     break;
                 }
             }
-            //aqui hay que crear el mensaje y ver como comprimirlo y guardarlo en mongo 
+         
             var newMsg = new Messages();
             newMsg.id = Guid.NewGuid().ToString();
+            newMsg.Readers = chatRoom.chatMembers;
             newMsg.SenderUsername = sender;
             newMsg.isFile = true;
             newMsg.FileName = File.FileName;
@@ -696,6 +704,125 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
             var response = await client.PutAsync("api/user/chats/" +chatRoom.id, content);
 
             return View();
+        }
+
+        [HttpGet]
+
+        public async Task<ActionResult> Download(string roomId)
+        {
+            ViewData["roomId"] = roomId;
+            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/allchats");
+            var result = res.Content.ReadAsStringAsync().Result;
+            var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
+            var chatRoom = new ChatRoom();
+            foreach (ChatRoom chat in allChatRooms)
+            {
+                if (chat.id == roomId)
+                {
+                    chatRoom = chat;
+                    break;
+                }
+            }
+            return View(chatRoom);
+        }
+
+      
+        public async Task<IActionResult> DownloadFile(string roomId, string msgid)
+        {
+            ViewBag.sessionv = HttpContext.Session.GetString("usuarioLogeado");
+            HttpClient client = _api.Initial();
+            HttpResponseMessage res = await client.GetAsync("api/user/allchats");
+            var result = res.Content.ReadAsStringAsync().Result;
+            var allChatRooms = System.Text.Json.JsonSerializer.Deserialize<List<ChatRoom>>(result);
+            var chatRoom = new ChatRoom();
+            var LZWcompresor = new LZW();
+            var message = new Messages();
+            var largodiccionario = new List<Byte>();
+            var chardiccionario = new List<Byte>();
+            var mensajecomprimido = new List<Byte>();
+            //foreach (ChatRoom chat in allChatRooms)
+            //{
+            //    if (chat.id == roomId)
+            //    {
+            //        chatRoom = chat;
+            //        break;
+            //    }
+            //}
+
+            foreach (ChatRoom chat in allChatRooms)
+            {
+                if (chat.id.ToString() == roomId)
+                {
+                    //aqui
+                    chatRoom = chat;
+                    //aqui se descifran los mensajes
+                   
+                        foreach (Messages s in chatRoom.messagesList)
+                        {
+                            if (s.id == msgid)
+                            {
+
+                            message = s;
+                            break;
+
+                            }
+
+
+                        }
+                    break;
+               
+                }
+            }
+
+
+            byte[] bytes = message.File;
+            int i = 0;
+
+
+
+
+            while (bytes[i] != 0)
+            {
+
+                largodiccionario.Add(bytes[i]);
+                i++;
+
+            }
+            i++;
+            int largo = 0;
+            foreach (byte c in largodiccionario)
+            {
+                largo += Convert.ToInt32(c);
+            }
+            int z = 0;
+            while (largo != z)
+            {
+
+                chardiccionario.Add(bytes[i]);
+                z++;
+                i++;
+
+            }
+
+            while (i != bytes.Length)
+            {
+                mensajecomprimido.Add(bytes[i]);
+                i++;
+            }
+
+          
+          
+
+
+            byte[] mensajcomprimido = LZWcompresor.Decompress(chardiccionario.ToArray(), mensajecomprimido.ToArray());
+
+            return new FileContentResult(mensajcomprimido, message.ContentType)
+            {
+
+                FileDownloadName = $"{message.FileName}"
+            };
         }
         public async Task<IActionResult> DeleteForMe(string roomId, string msgId)
         {

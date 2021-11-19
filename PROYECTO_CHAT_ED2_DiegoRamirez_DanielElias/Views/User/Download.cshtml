@@ -17,7 +17,6 @@
 
     .card {
         position: relative;
-
         height: 500px;
         width: 1100px;
         border-radius: 12px !important;
@@ -31,7 +30,6 @@
     }
 
     .msg_card_body {
-
         overflow-y: auto;
     }
 
@@ -339,10 +337,6 @@
     </span>
 
     <span class="form-group">
-        <input type="submit" value="Archivos" onclick="location.href='@Url.Action("Download", "User", new { roomid=Model.id})'" class="btn btn-outline-primary" />
-
-    </span>
-    <span class="form-group">
         @{
             if (Model.GroupName != null)
             {
@@ -441,12 +435,12 @@
 
 
 <div style="float:left" id="realTimeContents">
-    <div  class="col-xl-8 col-xl-8 chat">
-        <div  class="card">
+    <div class="col-xl-8 col-xl-8 chat">
+        <div class="card">
             <div class="card-header msg_head">
                 <div class="d-flex bd-highlight">
                     <div class="user_info">
-                        <p style="color:white; font-size:20px"; >Chat con:  @ViewData["ChatWith"]</p>
+                        <p style="color:white; font-size:20px" ;>Chat con:  @ViewData["ChatWith"]</p>
                     </div>
 
 
@@ -460,7 +454,7 @@
                 {
                     @if (message.Readers.Contains(ViewBag.sessionv))
                     {
-                        @if (message.SenderUsername == ViewBag.sessionv && message.isFile == false)
+                        @if (message.SenderUsername == ViewBag.sessionv && message.isFile == true)
                         {
                             <ul class="msg_cotainer">
 
@@ -468,11 +462,11 @@
                                 <div style="float:right" class="dropdown">
                                     <button onclick="" style="float: right;" class="dropbtn">...</button>
                                     <div class="dropdown-content">
-                                        <a value="@Model.id" href="@Url.ActionLink("DeleteForMe", "User", new { msgId = message.id, roomId = Model.id})">Eliminar para mi</a>
-                                        <a value="@Model.id" href="@Url.ActionLink("DeleteForAll", "User", new { msgId = message.id, roomId = Model.id})">Eliminar para todos</a>
+                                        <a value="@Model.id" href="@Url.ActionLink("DownloadFile", "User", new {  roomId = Model.id, msgid = message.id})">Descagar</a>
+
                                     </div>
                                 </div>
-                                <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
+                                <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.FileName)</p>
 
                             </ul>
                             <ul class="container">
@@ -480,20 +474,29 @@
                         }
                         else
                         {
-                            if (message.isFile == false)
+                            if (message.isFile == true)
                             {
-                            <ul class="msg_cotainer_send">
-                                <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
-                                <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
+
+                                <ul class="msg_cotainer_send">
+
+                                    <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
+                                    <div style="float:right" class="dropdown">
+                                        <button onclick="" style="float: right;" class="dropbtn">...</button>
+                                        <div class="dropdown-content">
+                                            <a value="@Model.id" href="@Url.ActionLink("DownloadFile", "User", new {   roomId = Model.id, msgid = message.id})">Descagar</a>
+
+                                        </div>
+                                    </div>
+                                    <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.FileName)</p>
 
 
 
-                            </ul>
-                            <ul class="container">
-                            </ul>
-                                }
+                                </ul>
+                                <ul class="container">
+                                </ul>
                             }
                         }
+                    }
                 }
 
             </div>
@@ -504,7 +507,7 @@
                         <input type="submit" value="File" onclick="location.href='@Url.Action("UploadFile", "User", new { roomId = Model.id, sender = ViewBag.sessionv})'" class="btn-outline-dark" />
 
                     </div>
-         
+
                     <div>@Html.TextBox("textMessage")</div>
 
                     <button value="@Model.id">
