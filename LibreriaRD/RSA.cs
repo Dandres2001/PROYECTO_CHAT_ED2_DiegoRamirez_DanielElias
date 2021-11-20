@@ -6,7 +6,7 @@ using System.Numerics;
 
 namespace LibreriaRD
 {
-   public class RSA 
+   public class RSA : Icifrados
     {
         public List<string> GenerarLlaves()
         {
@@ -150,7 +150,14 @@ namespace LibreriaRD
             return false;
         }
 
-       
+        public string Cypher(string llave, string mensaje)
+        {
+            throw new NotImplementedException();
+        }
 
+        public string Decypher(string llave, string mensaje)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

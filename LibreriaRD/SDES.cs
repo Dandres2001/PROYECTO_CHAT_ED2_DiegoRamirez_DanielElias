@@ -6,7 +6,7 @@ using System.IO;
 
 namespace LibreriaRD
 {
-   public class SDES
+   public class SDES : Icifrados
     {
         public string LeftShift1(string cadena)
         {
@@ -456,6 +456,16 @@ namespace LibreriaRD
             }
             string mensajito = GetString(Mensajecifrado.ToArray());
             return mensajito;
+        }
+
+        public string RSA_CYPHER(string mensaje, int n, int k)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string RSA_DECYPHER(string mensaje, int n, int k)
+        {
+            throw new NotImplementedException();
         }
     }
 }
