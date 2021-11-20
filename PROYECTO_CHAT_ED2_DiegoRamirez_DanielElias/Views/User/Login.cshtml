@@ -7,6 +7,7 @@
 <h1>Iniciar Sesión</h1>
 
 <hr />
+
 <div class="row align-content-center">
     <div class="col-md-4 align-content-center">
         <form asp-action="Login">
@@ -22,15 +23,14 @@
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
             <div class="form-group">
+                <div></div>
                 <input type="submit" value="Log In" class="btn btn-dark" />
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

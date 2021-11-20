@@ -669,6 +669,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
         }
         public async Task<IActionResult> SendMessage(string textMessage, string roomId)
         {
+
             HttpClient client = _api.Initial();
             HttpResponseMessage res = await client.GetAsync("api/user/allchats");
             var result = res.Content.ReadAsStringAsync().Result;
@@ -684,6 +685,20 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
                 {
                     chatRoom = chat;
                 }
+            }
+            if (textMessage == null)
+            {
+                string EXIT;
+                //verificar
+                if (chatRoom.chatMembers.Count == 2 && chatRoom.GroupName == null)
+                {
+                    EXIT = chatRoom.chatMembers.Find(x => x != ViewBag.sessionv);
+                }
+                else
+                {
+                    EXIT = chatRoom.GroupName;
+                }
+                return RedirectToAction(nameof(Room), new { id = EXIT });
             }
             //CREAR MENSAJE DE TEXTO
             var newMessage = new Messages();
@@ -783,7 +798,7 @@ namespace PROYECTO_CHAT_ED2_DiegoRamirez_DanielElias.Controllers
 
             var response = await client.PutAsync("api/user/chats/" +chatRoom.id, content);
 
-            ShowDialog("Archivo enviado");
+   
               
             return RedirectToAction(nameof(Download), new { roomId = chatRoom.id });
         }

@@ -374,7 +374,7 @@
 
                     </div>
                 </div>
-                <div style="display: flex; flex-direction: column;" class="card-body msg_card_body">
+                <div  class="card-body msg_card_body">
 
 
 
@@ -387,13 +387,7 @@
                                 <ul class="msg_cotainer">
 
                                     <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
-                                    <div style="float:right" class="dropdown">
-                                        <button onclick="" style="float: right;" class="dropbtn">...</button>
-                                        <div class="dropdown-content">
-                                            <a value="@Model" href="@Url.ActionLink("DeleteForMe", "User", new { msgId = message.id, roomId = Model})">Eliminar para mi</a>
-                                            <a value="@Model" href="@Url.ActionLink("DeleteForAll", "User", new { msgId = message.id, roomId = Model})">Eliminar para todos</a>
-                                        </div>
-                                    </div>
+                             
                                     <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
 
                                 </ul>
