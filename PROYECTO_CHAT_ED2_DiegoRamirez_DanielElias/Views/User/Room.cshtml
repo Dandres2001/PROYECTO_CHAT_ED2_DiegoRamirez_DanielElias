@@ -74,13 +74,13 @@
             outline: 0px !important;
         }
 
-/*    .attach_btn {
+    .attach_btn {
         border-radius: 15px 0 0 15px !important;
         background-color: rgba(0,0,0,0.3) !important;
         border: 0 !important;
         color: white !important;
         cursor: pointer;
-    }*/
+    }
 
     .send_btn {
         border-radius: 0 15px 15px 0 !important;
@@ -109,7 +109,7 @@
             margin-bottom: 15px !important;
         }
 
-/*    .active {
+    .active {
         background-color: rgba(0,0,0,0.3);
     }
 
@@ -146,7 +146,7 @@
         right: 0.4em;
         border: 1.5px solid white;
     }
-*/
+
     .offline {
         background-color: #c23616 !important;
     }
@@ -241,7 +241,7 @@
         display: none;
     }
 
-/*        .action_menu ul {
+        .action_menu ul {
             list-style: none;
             padding: 0;
             margin: 0;
@@ -260,7 +260,7 @@
                 .action_menu ul li:hover {
                     cursor: pointer;
                     background-color: rgba(0,0,0,0.2);
-                }*/
+                }
 
     .justify-content-end {
         background-color: #e09b1ecc;
@@ -361,11 +361,11 @@
 
 <div style="float:left">
     <div  class="col-xl-8 col-xl-8 chat">
-        <div  class="card">
+        <div class="card">
             <div class="card-header msg_head">
                 <div class="d-flex bd-highlight">
                     <div class="user_info">
-                        <p style="color:white; font-size:20px"; >Chat con:  @ViewData["ChatWith"]</p>
+                        <p style="color:white; font-size:20px" ;>Chat con:  @ViewData["ChatWith"]</p>
                     </div>
 
 
@@ -401,21 +401,22 @@
                         {
                             if (message.isFile == false)
                             {
-                            <ul class="msg_cotainer_send">
-                                <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
-                                <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
+                                <ul class="msg_cotainer_send">
+                                    <p class="datestring">@Html.DisplayFor(modelItem => message.date) </p>
+                                    <p style="color:white"> @Html.DisplayFor(modelItem => message.SenderUsername):  @Html.DisplayFor(modelItem => message.Text)</p>
 
 
 
-                            </ul>
-                            <ul class="container">
-                            </ul>
-                                }
+                                </ul>
+                                <ul class="container">
+                                </ul>
                             }
                         }
+                    }
                 }
 
             </div>
+            <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 
             <div class="card-footer">
                 <div class="input-group">
@@ -423,7 +424,7 @@
                         <input type="submit" value="File" onclick="location.href='@Url.Action("UploadFile", "User", new { roomId = Model.id, sender = ViewBag.sessionv})'" class="btn-outline-dark" />
 
                     </div>
-         
+
                     <div>@Html.TextBox("textMessage")</div>
 
                     <button value="@Model.id">
